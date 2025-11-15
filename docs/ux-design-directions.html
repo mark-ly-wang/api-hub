@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Hub - 设计方向探索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+            background: #f0f0f0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 40px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .direction-view {
+            display: none;
+        }
+
+        .direction-view.active {
+            display: block;
+        }
+
+        .direction-header {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .direction-name {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .direction-tagline {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .direction-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .feature-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .mockups {
+            display: grid;
+            gap: 30px;
+        }
+
+        .mockup-section {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .mockup-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #374151;
+        }
+
+        .mockup-frame {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        /* Browser Chrome */
+        .browser-chrome {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .browser-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #fbbf24; }
+        .dot-green { background: #10b981; }
+
+        .browser-url {
+            flex: 1;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #6b7280;
+            margin-left: 12px;
+        }
+
+        /* Mockup Content Styles */
+        .mockup-content {
+            min-height: 500px;
+            position: relative;
+        }
+
+        /* Common UI Elements */
+        .nav-bar {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .sidebar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 240px;
+            background: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+
+        .sidebar-item {
+            padding: 10px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .main-content {
+            margin-left: 240px;
+            padding: 32px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-secondary { background: #f1f5f9; color: #475569; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        /* Direction 1: Classic Dashboard */
+        .direction-1 .nav-bar {
+            background: #1e293b;
+            color: white;
+            border-bottom: none;
+        }
+
+        .direction-1 .logo {
+            color: white;
+        }
+
+        .direction-1 .nav-links {
+            color: #cbd5e1;
+        }
+
+        /* Direction 2: Modern Cards (Vercel-style) */
+        .direction-2 .main-content {
+            margin-left: 0;
+        }
+
+        .direction-2 .top-nav {
+            padding: 20px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .direction-2 .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid #e9ecef;
+        }
+
+        /* Direction 3: Compact Pro (Stripe-style) */
+        .direction-3 .sidebar {
+            width: 200px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .direction-3 .main-content {
+            margin-left: 200px;
+            background: #fafafa;
+        }
+
+        .direction-3 .card {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* Direction 4: Visual Explorer */
+        .direction-4 .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 32px;
+            text-align: center;
+            color: white;
+        }
+
+        .direction-4 .search-bar {
+            max-width: 600px;
+            margin: 24px auto 0;
+            padding: 16px 24px;
+            background: white;
+            border-radius: 50px;
+            color: #374151;
+            font-size: 16px;
+        }
+
+        .direction-4 .api-card {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .direction-4 .api-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+        }
+
+        /* Direction 5: Command Center */
+        .direction-5 .mockup-content {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .direction-5 .nav-bar {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .direction-5 .logo,
+        .direction-5 .nav-links {
+            color: #e2e8f0;
+        }
+
+        .direction-5 .sidebar {
+            background: #1e293b;
+            border-right: 1px solid #334155;
+        }
+
+        .direction-5 .sidebar-item {
+            color: #94a3b8;
+        }
+
+        .direction-5 .sidebar-item:hover,
+        .direction-5 .sidebar-item.active {
+            background: #334155;
+            color: #60a5fa;
+        }
+
+        .direction-5 .main-content {
+            background: #0f172a;
+        }
+
+        .direction-5 .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+        }
+
+        /* Direction 6: Zen Minimal */
+        .direction-6 .main-content {
+            margin-left: 0;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 32px;
+        }
+
+        .direction-6 .nav-bar {
+            border-bottom: none;
+            padding: 24px 60px;
+        }
+
+        .direction-6 .card {
+            border: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .direction-6 .section-title {
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+
+        .rating {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .rating-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .grid-2,
+            .grid-3,
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>API Hub 设计方向探索</h1>
+            <p class="subtitle">6种不同的布局和交互风格，找到最适合您的设计</p>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showDirection(1)">1️⃣ Classic Dashboard</div>
+                <div class="tab" onclick="showDirection(2)">2️⃣ Modern Cards</div>
+                <div class="tab" onclick="showDirection(3)">3️⃣ Compact Pro</div>
+                <div class="tab" onclick="showDirection(4)">4️⃣ Visual Explorer</div>
+                <div class="tab" onclick="showDirection(5)">5️⃣ Command Center</div>
+                <div class="tab" onclick="showDirection(6)">6️⃣ Zen Minimal</div>
+            </div>
+        </header>
+
+        <!-- Direction 1: Classic Dashboard -->
+        <div class="direction-view direction-1 active" id="direction-1">
+            <div class="direction-header">
+                <h2 class="direction-name">1️⃣ Classic Dashboard</h2>
+                <p class="direction-tagline">传统左侧边栏布局，功能清晰，适合复杂应用</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 信息层次清晰</div>
+                    <div class="feature-tag">✅ 用户熟悉度高</div>
+                    <div class="feature-tag">✅ 适合多功能模块</div>
+                    <div class="feature-tag">⚠️ 较为传统</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面1: Dashboard</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/dashboard</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="nav-bar">
+                                <div class="logo">🔌 API Hub</div>
+                                <div class="user-menu">
+                                    <div>余额: ¥128.50</div>
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="sidebar">
+                                <div class="sidebar-item active">📊 概览</div>
+                                <div class="sidebar-item">🔌 API市场</div>
+                                <div class="sidebar-item">🔑 API Keys</div>
+                                <div class="sidebar-item">📈 使用统计</div>
+                                <div class="sidebar-item">💰 充值记录</div>
+                                <div class="sidebar-item">👤 会员中心</div>
+                                <div class="sidebar-item">⚙️ 设置</div>
+                            </div>
+                            <div class="main-content">
+                                <h2 style="margin-bottom: 24px;">概览</h2>
+                                <div class="grid-4">
+                                    <div class="card stat-card">
+                                        <div class="stat-value">1,234</div>
+                                        <div class="stat-label">总调用次数</div>
+                                    </div>
+                                    <div class="card stat-card">
+                                        <div class="stat-value">¥128.50</div>
+                                        <div class="stat-label">账户余额</div>
+                                    </div>
+                                    <div class="card stat-card">
+                                        <div class="stat-value">8</div>
+                                        <div class="stat-label">已订阅API</div>
+                                    </div>
+                                    <div class="card stat-card">
+                                        <div class="stat-value">VIP</div>
+                                        <div class="stat-label">会员等级</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面2: API市场</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/marketplace</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="nav-bar">
+                                <div class="logo">🔌 API Hub</div>
+                                <div class="user-menu">
+                                    <div>余额: ¥128.50</div>
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="sidebar">
+                                <div class="sidebar-item">📊 概览</div>
+                                <div class="sidebar-item active">🔌 API市场</div>
+                                <div class="sidebar-item">🔑 API Keys</div>
+                                <div class="sidebar-item">📈 使用统计</div>
+                                <div class="sidebar-item">💰 充值记录</div>
+                                <div class="sidebar-item">👤 会员中心</div>
+                                <div class="sidebar-item">⚙️ 设置</div>
+                            </div>
+                            <div class="main-content">
+                                <h2 style="margin-bottom: 24px;">API市场</h2>
+                                <div class="grid-3">
+                                    <div class="card">
+                                        <h4 style="margin-bottom: 8px;">天气查询 API</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">实时天气数据查询服务</p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span class="badge">按次计费</span>
+                                            <span style="font-weight: 600;">¥0.01/次</span>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <h4 style="margin-bottom: 8px;">GPT-4 API</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">OpenAI GPT-4 对话服务</p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span class="badge">按量计费</span>
+                                            <span style="font-weight: 600;">¥0.05/1K tokens</span>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <h4 style="margin-bottom: 8px;">手机号归属地</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">查询手机号归属地信息</p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span class="badge" style="background: #fbbf24; color: #78350f;">VIP免费</span>
+                                            <span style="font-weight: 600; text-decoration: line-through; color: #9ca3af;">¥0.02/次</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction 2: Modern Cards -->
+        <div class="direction-view direction-2" id="direction-2">
+            <div class="direction-header">
+                <h2 class="direction-name">2️⃣ Modern Cards (Vercel风格)</h2>
+                <p class="direction-tagline">无侧边栏，顶部导航，卡片式内容展示</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 现代化视觉</div>
+                    <div class="feature-tag">✅ 卡片聚焦</div>
+                    <div class="feature-tag">✅ 移动端友好</div>
+                    <div class="feature-tag">✅ 开发速度快</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面1: Dashboard</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/dashboard</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="top-nav">
+                                <div class="logo">🔌 API Hub</div>
+                                <div class="nav-links">
+                                    <span style="color: #3b82f6; font-weight: 600;">概览</span>
+                                    <span>API市场</span>
+                                    <span>文档</span>
+                                    <span>使用统计</span>
+                                </div>
+                                <div class="user-menu">
+                                    <button class="btn btn-primary">充值</button>
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="main-content" style="margin-left: 0; padding: 48px;">
+                                <h1 style="font-size: 32px; margin-bottom: 12px;">早上好 👋</h1>
+                                <p style="color: #6b7280; margin-bottom: 40px;">这是您今天的API使用概览</p>
+
+                                <div class="grid-3" style="margin-bottom: 32px;">
+                                    <div class="card">
+                                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">今日调用</div>
+                                        <div style="font-size: 28px; font-weight: 700;">342</div>
+                                        <div style="font-size: 12px; color: #10b981; margin-top: 8px;">↑ 12% vs 昨天</div>
+                                    </div>
+                                    <div class="card">
+                                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">账户余额</div>
+                                        <div style="font-size: 28px; font-weight: 700;">¥128.50</div>
+                                        <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">预计可用7天</div>
+                                    </div>
+                                    <div class="card">
+                                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">会员状态</div>
+                                        <div style="font-size: 28px; font-weight: 700;">VIP</div>
+                                        <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">2026-01-15到期</div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <h3 style="margin-bottom: 16px;">快速开始</h3>
+                                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">只需3步，完成您的首次API调用</p>
+                                    <div style="display: flex; gap: 12px;">
+                                        <button class="btn btn-primary">生成 API Key</button>
+                                        <button class="btn btn-secondary">查看文档</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction 3: Compact Pro -->
+        <div class="direction-view direction-3" id="direction-3">
+            <div class="direction-header">
+                <h2 class="direction-name">3️⃣ Compact Pro (Stripe风格)</h2>
+                <p class="direction-tagline">紧凑布局，信息密度高，专业高效</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 信息密度高</div>
+                    <div class="feature-tag">✅ 专业简洁</div>
+                    <div class="feature-tag">✅ 适合高频使用</div>
+                    <div class="feature-tag">⚠️ 学习曲线稍高</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面3: API详情页</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/api/weather</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="nav-bar">
+                                <div class="logo">🔌 API Hub</div>
+                                <div class="user-menu">
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="sidebar">
+                                <div class="sidebar-item">← 返回市场</div>
+                                <div style="margin: 20px 0; border-top: 1px solid #e5e7eb;"></div>
+                                <div class="sidebar-item active">📖 概览</div>
+                                <div class="sidebar-item">🔧 参数说明</div>
+                                <div class="sidebar-item">📊 响应格式</div>
+                                <div class="sidebar-item">🧪 在线测试</div>
+                                <div class="sidebar-item">💰 计费说明</div>
+                            </div>
+                            <div class="main-content">
+                                <h1 style="margin-bottom: 8px;">天气查询 API</h1>
+                                <p style="color: #6b7280; margin-bottom: 24px;">实时天气数据查询服务，覆盖全球3000+城市</p>
+
+                                <div class="card" style="margin-bottom: 24px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                                        <div>
+                                            <div style="font-size: 14px; color: #6b7280;">计费模式</div>
+                                            <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">按次计费</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 14px; color: #6b7280;">价格</div>
+                                            <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">¥0.01/次</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" style="width: 100%;">立即订阅</button>
+                                </div>
+
+                                <div class="card">
+                                    <h3 style="margin-bottom: 12px;">快速开始</h3>
+                                    <div class="code-block">
+curl -X GET https://gateway.api-hub.com/weather/current \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d "city=北京"
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction 4: Visual Explorer -->
+        <div class="direction-view direction-4" id="direction-4">
+            <div class="direction-header">
+                <h2 class="direction-name">4️⃣ Visual Explorer</h2>
+                <p class="direction-tagline">视觉化探索，大图标卡片，降低认知门槛</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 视觉吸引力强</div>
+                    <div class="feature-tag">✅ 新手友好</div>
+                    <div class="feature-tag">✅ 品牌记忆深</div>
+                    <div class="feature-tag">⚠️ 信息密度低</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面2: API市场</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/marketplace</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="hero">
+                                <h1 style="font-size: 40px; margin-bottom: 16px;">探索 API 世界</h1>
+                                <p style="font-size: 18px; opacity: 0.9;">为您的Coze工作流找到完美的API</p>
+                                <div class="search-bar">🔍 搜索API...</div>
+                            </div>
+                            <div style="padding: 48px 32px; background: white;">
+                                <h2 style="text-align: center; margin-bottom: 40px;">热门 API</h2>
+                                <div class="grid-4">
+                                    <div class="card api-card">
+                                        <div class="api-icon"></div>
+                                        <h4 style="margin-bottom: 8px;">天气查询</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">实时天气数据</p>
+                                        <span class="badge">¥0.01/次</span>
+                                    </div>
+                                    <div class="card api-card">
+                                        <div class="api-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                                        <h4 style="margin-bottom: 8px;">GPT-4</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">AI对话服务</p>
+                                        <span class="badge">¥0.05/1K</span>
+                                    </div>
+                                    <div class="card api-card">
+                                        <div class="api-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                                        <h4 style="margin-bottom: 8px;">翻译</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">多语言翻译</p>
+                                        <span class="badge">¥0.02/次</span>
+                                    </div>
+                                    <div class="card api-card">
+                                        <div class="api-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                                        <h4 style="margin-bottom: 8px;">图片识别</h4>
+                                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">OCR文字提取</p>
+                                        <span class="badge" style="background: #fbbf24; color: #78350f;">VIP免费</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction 5: Command Center -->
+        <div class="direction-view direction-5" id="direction-5">
+            <div class="direction-header">
+                <h2 class="direction-name">5️⃣ Command Center (深色模式)</h2>
+                <p class="direction-tagline">命令中心风格，深色主题，专为开发者设计</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 护眼深色模式</div>
+                    <div class="feature-tag">✅ 开发者喜爱</div>
+                    <div class="feature-tag">✅ 专注编码</div>
+                    <div class="feature-tag">⚠️ 非开发者可能不习惯</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面1: Dashboard (深色模式)</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/dashboard</div>
+                        </div>
+                        <div class="mockup-content" style="background: #0f172a;">
+                            <div class="nav-bar" style="background: #1e293b; border-bottom: 1px solid #334155;">
+                                <div class="logo" style="color: #e2e8f0;">🔌 API Hub</div>
+                                <div class="user-menu" style="color: #e2e8f0;">
+                                    <div>余额: ¥128.50</div>
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="sidebar" style="background: #1e293b; border-right: 1px solid #334155;">
+                                <div class="sidebar-item active" style="color: #60a5fa; background: #334155;">📊 概览</div>
+                                <div class="sidebar-item" style="color: #94a3b8;">🔌 API市场</div>
+                                <div class="sidebar-item" style="color: #94a3b8;">🔑 API Keys</div>
+                                <div class="sidebar-item" style="color: #94a3b8;">📈 使用统计</div>
+                                <div class="sidebar-item" style="color: #94a3b8;">💰 充值记录</div>
+                                <div class="sidebar-item" style="color: #94a3b8;">👤 会员中心</div>
+                            </div>
+                            <div class="main-content" style="background: #0f172a;">
+                                <h2 style="margin-bottom: 24px; color: #e2e8f0;">概览</h2>
+                                <div class="grid-3">
+                                    <div class="card" style="background: #1e293b; border: 1px solid #334155;">
+                                        <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">今日调用</div>
+                                        <div style="font-size: 28px; font-weight: 700; color: #e2e8f0;">342</div>
+                                        <div style="font-size: 12px; color: #10b981; margin-top: 8px;">↑ 12%</div>
+                                    </div>
+                                    <div class="card" style="background: #1e293b; border: 1px solid #334155;">
+                                        <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">账户余额</div>
+                                        <div style="font-size: 28px; font-weight: 700; color: #e2e8f0;">¥128.50</div>
+                                    </div>
+                                    <div class="card" style="background: #1e293b; border: 1px solid #334155;">
+                                        <div style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">会员状态</div>
+                                        <div style="font-size: 28px; font-weight: 700; color: #fbbf24;">VIP</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direction 6: Zen Minimal -->
+        <div class="direction-view direction-6" id="direction-6">
+            <div class="direction-header">
+                <h2 class="direction-name">6️⃣ Zen Minimal (极简禅意)</h2>
+                <p class="direction-tagline">大量留白，单列布局，专注内容本身</p>
+                <div class="direction-features">
+                    <div class="feature-tag">✅ 极简美学</div>
+                    <div class="feature-tag">✅ 阅读体验好</div>
+                    <div class="feature-tag">✅ 减少干扰</div>
+                    <div class="feature-tag">⚠️ 功能跳转层级深</div>
+                </div>
+                <div class="rating">
+                    <div class="rating-label">推荐指数</div>
+                    <div class="rating-stars">⭐⭐⭐</div>
+                </div>
+            </div>
+
+            <div class="mockups">
+                <div class="mockup-section">
+                    <h3 class="mockup-title">页面3: API详情页</h3>
+                    <div class="mockup-frame">
+                        <div class="browser-chrome">
+                            <div class="browser-dot dot-red"></div>
+                            <div class="browser-dot dot-yellow"></div>
+                            <div class="browser-dot dot-green"></div>
+                            <div class="browser-url">https://api-hub.com/api/weather</div>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="nav-bar" style="border-bottom: none; padding: 24px 60px;">
+                                <div class="logo">API Hub</div>
+                                <div class="nav-links">
+                                    <span>市场</span>
+                                    <span>文档</span>
+                                    <span>定价</span>
+                                </div>
+                                <div class="user-menu">
+                                    <div class="avatar"></div>
+                                </div>
+                            </div>
+                            <div class="main-content" style="max-width: 700px; margin: 0 auto; padding: 80px 32px;">
+                                <div class="section-title">API详情</div>
+                                <h1 style="font-size: 48px; margin-bottom: 16px; line-height: 1.2;">天气查询 API</h1>
+                                <p style="font-size: 20px; color: #6b7280; margin-bottom: 60px; line-height: 1.6;">
+                                    实时天气数据查询服务，覆盖全球3000+城市。提供温度、湿度、风力、空气质量等完整气象数据。
+                                </p>
+
+                                <div class="card" style="margin-bottom: 60px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                                        <div>
+                                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">计费模式</div>
+                                            <div style="font-size: 16px;">按次计费</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">价格</div>
+                                            <div style="font-size: 24px; font-weight: 700;">¥0.01 <span style="font-size: 16px; font-weight: 400; color: #6b7280;">/次</span></div>
+                                        </div>
+                                    </div>
+                                    <div style="padding-top: 20px;">
+                                        <button class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px;">开始使用</button>
+                                    </div>
+                                </div>
+
+                                <div class="section-title">示例代码</div>
+                                <div class="code-block" style="margin-bottom: 60px;">
+curl -X GET https://gateway.api-hub.com/weather/current \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d "city=北京"
+                                </div>
+
+                                <div class="section-title">响应示例</div>
+                                <div class="code-block">
+{
+  "city": "北京",
+  "temperature": 18,
+  "humidity": 45,
+  "weather": "晴"
+}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDirection(n) {
+            // Hide all directions
+            document.querySelectorAll('.direction-view').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected direction
+            document.getElementById('direction-' + n).classList.add('active');
+            document.querySelectorAll('.tab')[n - 1].classList.add('active');
+        }
+    </script>
+</body>
+</html>

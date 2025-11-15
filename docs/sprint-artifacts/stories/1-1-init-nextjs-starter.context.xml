@@ -1,0 +1,168 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.1</storyId>
+    <title>初始化 Next.js SaaS Starter 项目</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-1-init-nextjs-starter.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>开发者</asA>
+    <iWant>基于 Next.js 官方 SaaS Starter 初始化项目</iWant>
+    <soThat>拥有经过验证的项目结构和最佳实践基础</soThat>
+    <tasks>
+- [ ] 执行项目初始化 (AC: 2, 3)
+  - [ ] 运行 `npx create-next-app --example saas-starter api-hub`
+  - [ ] 验证项目目录结构（app/、components/、lib/）
+  - [ ] 检查 package.json 中的关键依赖
+- [ ] 配置开发环境 (AC: 4, 5)
+  - [ ] 安装依赖：`npm install`
+  - [ ] 启动开发服务器：`npm run dev`
+  - [ ] 验证 http://localhost:3000 可访问
+- [ ] 初始化版本控制 (AC: 6)
+  - [ ] 初始化 Git 仓库：`git init`
+  - [ ] 创建初始提交
+  - [ ] 创建 GitHub 仓库并关联
+  - [ ] 推送代码：`git push -u origin main`
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** Next.js SaaS Starter 官方仓库
+2. **When** 执行 `npx create-next-app --example` 命令
+3. **Then** 项目成功创建，包含标准目录结构（app/、components/、lib/）
+4. **And** package.json 包含所有必要依赖（Next.js 14, React, TypeScript）
+5. **And** 本地开发服务器可成功启动（`npm run dev`）
+6. **And** Git 仓库已初始化并推送到 GitHub
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.1 - 初始化流程</section>
+        <snippet>使用 Next.js 14 App Router 初始化项目。保留官方模板的 Drizzle ORM 配置（Story 1.2 将迁移到 Prisma）。确认 TypeScript 配置正确。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Workflows and Sequencing</section>
+        <snippet>Story 1.1 执行步骤：1) 执行 npx create-next-app --example saas-starter, 2) 验证项目结构（app/, components/, lib/）, 3) 安装依赖并启动开发服务器, 4) 初始化 Git 仓库并推送到 GitHub</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>System Architecture Alignment</section>
+        <snippet>技术栈：Next.js 14 (App Router), shadcn/ui + Tailwind CSS, TypeScript。与 Architecture 2.1.1 和 2.1.2 完全对齐。</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.1: 初始化 Next.js SaaS Starter 项目</section>
+        <snippet>Prerequisites: 无。Technical Notes: 使用 Next.js 14 App Router，保留官方模板的 Drizzle ORM 配置。</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>技术栈选择</section>
+        <snippet>前端采用 Next.js 14，后端使用 Next.js API Routes，部署在 Zeabur 平台，实现零运维目标。</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- 无现有代码 - 这是项目的第一个 Story -->
+    </code>
+    <dependencies>
+      <node>
+        <core>
+          <package name="next" version="^14.2.0" />
+          <package name="react" version="^18.3.0" />
+          <package name="react-dom" version="^18.3.0" />
+          <package name="typescript" version="^5.4.0" />
+        </core>
+        <ui>
+          <package name="tailwindcss" version="^3.4.0" />
+          <package name="@radix-ui/react-*" note="shadcn/ui 组件依赖" />
+        </ui>
+        <dev>
+          <package name="@types/react" version="^18.3.0" />
+          <package name="@types/node" version="^20.12.0" />
+          <package name="eslint" version="^8.57.0" />
+          <package name="prettier" version="^3.2.0" />
+        </dev>
+        <note>官方 SaaS Starter 模板将自动安装所有必要依赖</note>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **技术栈约束**: 必须使用 Next.js 14 (App Router)，不得使用 Pages Router
+- **TypeScript 要求**: 项目必须使用 TypeScript，严格模式开启
+- **官方模板**: 必须基于 Next.js 官方 SaaS Starter，不得从零开始搭建
+- **保留 Drizzle**: 当前阶段保留官方模板的 Drizzle ORM 配置，Story 1.2 将替换为 Prisma
+- **目录结构**: 保持 Next.js 14 App Router 标准结构：app/、components/、lib/
+- **版本控制**: 必须使用 Git 并推送到 GitHub 远程仓库
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Next.js App Router 路由约定</name>
+      <kind>文件系统路由</kind>
+      <signature>
+        app/
+        ├── layout.tsx          # 根布局
+        ├── page.tsx            # 首页
+        ├── (auth)/             # 路由组：认证
+        ├── (dashboard)/        # 路由组：Dashboard
+        └── api/               # API Routes
+      </signature>
+      <path>app/</path>
+    </interface>
+    <interface>
+      <name>package.json scripts</name>
+      <kind>NPM 脚本</kind>
+      <signature>
+        "scripts": {
+          "dev": "next dev",
+          "build": "next build",
+          "start": "next start",
+          "lint": "next lint"
+        }
+      </signature>
+      <path>package.json</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      本 Story 主要为手动验证。后续 Stories 将建立自动化测试框架。
+
+      **验证方式：**
+      1. 手动验证：`npm run dev` 成功启动
+      2. 目录检查：确认 app/、components/、lib/ 目录存在
+      3. 依赖检查：package.json 包含必要的 Next.js、React、TypeScript 依赖
+      4. Git 验证：代码成功推送到 GitHub，仓库可访问
+    </standards>
+    <locations>
+      <!-- 本 Story 不涉及测试文件创建 -->
+      <!-- Epic 1 后续 Stories 将建立测试框架 -->
+    </locations>
+    <ideas>
+      <test id="AC-1" description="验证项目创建成功">
+        手动检查：项目目录存在，包含预期的文件结构
+      </test>
+      <test id="AC-2" description="验证依赖安装">
+        运行 `npm install` 无错误，node_modules 目录创建成功
+      </test>
+      <test id="AC-3" description="验证开发服务器启动">
+        运行 `npm run dev`，访问 http://localhost:3000 能看到默认首页
+      </test>
+      <test id="AC-4" description="验证 Git 仓库">
+        `.git` 目录存在，远程仓库关联成功，代码已推送
+      </test>
+    </ideas>
+  </tests>
+</story-context>

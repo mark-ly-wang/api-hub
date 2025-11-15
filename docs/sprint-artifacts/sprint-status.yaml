@@ -1,0 +1,194 @@
+# generated: 2025-11-15
+# project: api-hub
+# project_key: api-hub
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Next epic tech context created by *epic-tech-context (required)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder by *create-story
+#   - ready-for-dev: Draft approved and story context created by *story-ready
+#   - in-progress: Developer actively working on implementation by *dev-story
+#   - review: Implementation complete, ready for review by *code-review
+#   - done: Story completed by *story-done
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done by *retrospective
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
+
+generated: 2025-11-15
+project: api-hub
+project_key: api-hub
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  # Epic 1: 项目基础设施与核心架构 (6 stories)
+  epic-1: contexted
+  1-1-init-nextjs-starter: in-progress
+  1-2-migrate-to-prisma: backlog
+  1-3-setup-postgresql: backlog
+  1-4-deploy-to-zeabur: backlog
+  1-5-jwt-auth-middleware: backlog
+  1-6-monitoring-logging: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: 用户认证与账户管理 (8 stories) - FR1-FR8
+  epic-2: backlog
+  2-1-phone-sms-register: backlog
+  2-2-email-password-register: backlog
+  2-3-login: backlog
+  2-4-logout: backlog
+  2-5-password-reset: backlog
+  2-6-profile-management: backlog
+  2-7-security-settings: backlog
+  2-8-multi-device-login: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: API Key 生命周期管理 (5 stories) - FR9-FR13
+  epic-3: backlog
+  3-1-generate-api-key: backlog
+  3-2-list-api-keys: backlog
+  3-3-name-api-key: backlog
+  3-4-revoke-api-key: backlog
+  3-5-rotate-api-key: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: API 市场与浏览体验 (7 stories) - FR28-FR34
+  epic-4: backlog
+  4-1-api-catalog: backlog
+  4-2-api-category-filter: backlog
+  4-3-api-search: backlog
+  4-4-api-detail-page: backlog
+  4-5-api-pricing: backlog
+  4-6-coze-code-template: backlog
+  4-7-copy-coze-code: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: API 网关核心引擎 (8 stories) - FR35-FR42
+  epic-5: backlog
+  5-1-gateway-endpoint: backlog
+  5-2-validate-api-key: backlog
+  5-3-validate-user-permission: backlog
+  5-4-check-balance: backlog
+  5-5-rate-limiting: backlog
+  5-6-proxy-upstream: backlog
+  5-7-billing-charge: backlog
+  5-8-api-call-logging: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: 智能计费引擎 (7 stories) - FR43-FR53
+  epic-6: backlog
+  6-1-per-call-billing: backlog
+  6-2-usage-based-billing: backlog
+  6-3-member-billing: backlog
+  6-4-balance-transaction: backlog
+  6-5-manual-balance-adjust: backlog
+  6-6-cost-revenue-tracking: backlog
+  6-7-billing-audit: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: 账户余额与充值系统 (6 stories) - FR14-FR20
+  epic-7: backlog
+  7-1-view-balance: backlog
+  7-2-stripe-topup: backlog
+  7-3-topup-history: backlog
+  7-4-usage-history: backlog
+  7-5-filter-transactions: backlog
+  7-6-low-balance-alert: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: 会员体系与权益管理 (7 stories) - FR21-FR27
+  epic-8: backlog
+  8-1-membership-plans: backlog
+  8-2-purchase-membership: backlog
+  8-3-membership-status: backlog
+  8-4-renew-membership: backlog
+  8-5-membership-discount: backlog
+  8-6-membership-cashback: backlog
+  8-7-membership-expiry: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Coze 插件智能代码生成 (4 stories) - FR54-FR57
+  epic-9: backlog
+  9-1-llm-code-generation: backlog
+  9-2-param-mapping: backlog
+  9-3-example-values: backlog
+  9-4-code-caching: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: 通知与用户触达 (5 stories) - FR90-FR94
+  epic-10: backlog
+  10-1-low-balance-notification: backlog
+  10-2-membership-expiry-reminder: backlog
+  10-3-topup-confirmation: backlog
+  10-4-notification-preferences: backlog
+  10-5-actionable-links: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: 支付集成（Stripe MVP） (5 stories) - FR95-FR99
+  epic-11: backlog
+  11-1-stripe-integration: backlog
+  11-2-checkout-session: backlog
+  11-3-payment-success-update: backlog
+  11-4-payment-failure-handling: backlog
+  11-5-payment-audit-trail: backlog
+  epic-11-retrospective: optional
+
+  # Epic 12: 安全与风控体系 (6 stories) - FR100-FR105
+  epic-12: backlog
+  12-1-api-key-encryption: backlog
+  12-2-user-rate-limiting: backlog
+  12-3-anomaly-detection: backlog
+  12-4-audit-logging: backlog
+  12-5-ip-whitelist: backlog
+  12-6-account-suspension: backlog
+  epic-12-retrospective: optional
+
+  # ===============================
+  # PHASE 2 - Admin 后台功能
+  # ===============================
+
+  # Epic 13: Admin - API 接入与配置 (7 stories) - FR58-FR70
+  epic-13: backlog
+  13-1-admin-add-api: backlog
+  13-2-upstream-config: backlog
+  13-3-billing-mode-config: backlog
+  13-4-member-benefit-config: backlog
+  13-5-edit-api: backlog
+  13-6-remove-api: backlog
+  13-7-ai-data-processing: backlog
+  epic-13-retrospective: optional
+
+  # Epic 14: Admin - 会员套餐管理 (5 stories) - FR71-FR75
+  epic-14: backlog
+  14-1-create-membership-plan: backlog
+  14-2-plan-types: backlog
+  14-3-edit-plan: backlog
+  14-4-archive-plan: backlog
+  14-5-plan-statistics: backlog
+  epic-14-retrospective: optional
+
+  # Epic 15: Admin - 用户管理与监控 (8 stories) - FR76-FR89
+  epic-15: backlog
+  15-1-user-list: backlog
+  15-2-user-details: backlog
+  15-3-api-call-stats: backlog
+  15-4-enable-disable-account: backlog
+  15-5-manual-balance-adjustment: backlog
+  15-6-platform-dashboard: backlog
+  15-7-growth-trends: backlog
+  15-8-alert-rules: backlog
+  epic-15-retrospective: optional

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Hub - 颜色主题探索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .theme-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .theme-header {
+            margin-bottom: 24px;
+        }
+
+        .theme-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .theme-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 8px;
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .color-label {
+            opacity: 0.9;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ui-preview {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .preview-section {
+            margin-bottom: 20px;
+        }
+
+        .preview-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card-preview {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-content {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Theme 1: Developer Pro (深色优先) */
+        .theme-1 .color-primary { background: #6366f1; }
+        .theme-1 .color-secondary { background: #8b5cf6; }
+        .theme-1 .color-accent { background: #10b981; }
+        .theme-1 .color-background { background: #1e1b4b; color: #888; }
+        .theme-1 .color-surface { background: #312e81; }
+
+        .theme-1 .btn-primary { background: #6366f1; color: white; }
+        .theme-1 .btn-secondary { background: #4338ca; color: white; }
+        .theme-1 .badge { background: #10b981; color: white; }
+
+        /* Theme 2: Friendly Tech (明亮清新) */
+        .theme-2 .color-primary { background: #3b82f6; }
+        .theme-2 .color-secondary { background: #60a5fa; }
+        .theme-2 .color-accent { background: #f97316; }
+        .theme-2 .color-background { background: #ffffff; color: #888; }
+        .theme-2 .color-surface { background: #f1f5f9; color: #888; }
+
+        .theme-2 .btn-primary { background: #3b82f6; color: white; }
+        .theme-2 .btn-secondary { background: #dbeafe; color: #1e40af; }
+        .theme-2 .badge { background: #f97316; color: white; }
+
+        /* Theme 3: Minimalist (优雅极简) */
+        .theme-3 .color-primary { background: #64748b; }
+        .theme-3 .color-secondary { background: #94a3b8; }
+        .theme-3 .color-accent { background: #1e40af; }
+        .theme-3 .color-background { background: #ffffff; color: #888; }
+        .theme-3 .color-surface { background: #f8fafc; color: #888; }
+
+        .theme-3 .btn-primary { background: #1e40af; color: white; }
+        .theme-3 .btn-secondary { background: #e2e8f0; color: #475569; }
+        .theme-3 .badge { background: #64748b; color: white; }
+
+        /* Theme 4: Modern SaaS (活力渐变) */
+        .theme-4 .color-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-4 .color-secondary { background: #a78bfa; }
+        .theme-4 .color-accent { background: #ec4899; }
+        .theme-4 .color-background { background: #ffffff; color: #888; }
+        .theme-4 .color-surface { background: #faf5ff; color: #888; }
+
+        .theme-4 .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .theme-4 .btn-secondary { background: #f3e8ff; color: #7c3aed; }
+        .theme-4 .badge { background: #ec4899; color: white; }
+
+        /* Theme 5: Enterprise (专业深邃) */
+        .theme-5 .color-primary { background: #1e3a8a; }
+        .theme-5 .color-secondary { background: #3b82f6; }
+        .theme-5 .color-accent { background: #fbbf24; }
+        .theme-5 .color-background { background: #0f172a; color: #888; }
+        .theme-5 .color-surface { background: #1e293b; color: #888; }
+
+        .theme-5 .btn-primary { background: #1e3a8a; color: white; }
+        .theme-5 .btn-secondary { background: #3b82f6; color: white; }
+        .theme-5 .badge { background: #fbbf24; color: #1e3a8a; font-weight: 600; }
+
+        /* Theme 6: Approachable (自然温和) */
+        .theme-6 .color-primary { background: #059669; }
+        .theme-6 .color-secondary { background: #10b981; }
+        .theme-6 .color-accent { background: #84cc16; }
+        .theme-6 .color-background { background: #fefce8; color: #888; }
+        .theme-6 .color-surface { background: #f0fdf4; color: #888; }
+
+        .theme-6 .btn-primary { background: #059669; color: white; }
+        .theme-6 .btn-secondary { background: #d1fae5; color: #065f46; }
+        .theme-6 .badge { background: #84cc16; color: white; }
+
+        .comparison {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 40px;
+        }
+
+        .comparison h2 {
+            margin-bottom: 24px;
+            color: #1a1a1a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            font-weight: 600;
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        td {
+            color: #6b7280;
+        }
+
+        .rating {
+            color: #fbbf24;
+        }
+
+        @media (max-width: 768px) {
+            .themes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>API Hub 颜色主题探索</h1>
+            <p class="subtitle">为您的API聚合平台选择最适合的视觉风格</p>
+        </header>
+
+        <div class="themes-grid">
+            <!-- Theme 1: Developer Pro -->
+            <div class="theme-card theme-1">
+                <div class="theme-header">
+                    <h2 class="theme-name">🌙 Developer Pro</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>专业开发者工具<br>
+                        <strong>情感：</strong>专注、沉浸、高效<br>
+                        <strong>适用：</strong>深色模式优先，夜间编码友好
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        #6366f1
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #8b5cf6
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #10b981
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #1e1b4b
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #312e81
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">按次计费</span>
+                                <span style="margin-left: 8px; font-size: 14px;">¥0.01/次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 2: Friendly Tech -->
+            <div class="theme-card theme-2">
+                <div class="theme-header">
+                    <h2 class="theme-name">☀️ Friendly Tech</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>友好、易用的技术平台<br>
+                        <strong>情感：</strong>自信、轻松、清晰<br>
+                        <strong>适用：</strong>明亮模式，降低技术门槛
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        #3b82f6
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #60a5fa
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #f97316
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #ffffff
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #f1f5f9
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">按次计费</span>
+                                <span style="margin-left: 8px; font-size: 14px;">¥0.01/次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 3: Minimalist -->
+            <div class="theme-card theme-3">
+                <div class="theme-header">
+                    <h2 class="theme-name">⚪ Minimalist</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>优雅极简主义<br>
+                        <strong>情感：</strong>专业、克制、高端<br>
+                        <strong>适用：</strong>信息密度高的场景
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        #64748b
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #94a3b8
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #1e40af
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #ffffff
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #f8fafc
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">按次计费</span>
+                                <span style="margin-left: 8px; font-size: 14px;">¥0.01/次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 4: Modern SaaS -->
+            <div class="theme-card theme-4">
+                <div class="theme-header">
+                    <h2 class="theme-name">🎨 Modern SaaS</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>现代化SaaS产品<br>
+                        <strong>情感：</strong>创新、活力、吸引力<br>
+                        <strong>适用：</strong>年轻用户群体，品牌差异化
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        Gradient
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #a78bfa
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #ec4899
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #ffffff
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #faf5ff
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">按次计费</span>
+                                <span style="margin-left: 8px; font-size: 14px;">¥0.01/次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 5: Enterprise -->
+            <div class="theme-card theme-5">
+                <div class="theme-header">
+                    <h2 class="theme-name">🏢 Enterprise</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>企业级专业工具<br>
+                        <strong>情感：</strong>信任、稳重、权威<br>
+                        <strong>适用：</strong>高价值客户，会员体系强调
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        #1e3a8a
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #3b82f6
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #fbbf24
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #0f172a
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #1e293b
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例（会员徽章采用金色）</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">VIP会员免费</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 6: Approachable -->
+            <div class="theme-card theme-6">
+                <div class="theme-header">
+                    <h2 class="theme-name">🌿 Approachable</h2>
+                    <p class="theme-description">
+                        <strong>定位：</strong>自然、温和、易接近<br>
+                        <strong>情感：</strong>成长、简单、放心<br>
+                        <strong>适用：</strong>强调"降低门槛"的价值主张
+                    </p>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch color-primary">
+                        <span class="color-label">Primary</span>
+                        #059669
+                    </div>
+                    <div class="color-swatch color-secondary">
+                        <span class="color-label">Secondary</span>
+                        #10b981
+                    </div>
+                    <div class="color-swatch color-accent">
+                        <span class="color-label">Accent</span>
+                        #84cc16
+                    </div>
+                    <div class="color-swatch color-background">
+                        <span class="color-label">BG</span>
+                        #fefce8
+                    </div>
+                    <div class="color-swatch color-surface">
+                        <span class="color-label">Surface</span>
+                        #f0fdf4
+                    </div>
+                </div>
+
+                <div class="ui-preview">
+                    <div class="preview-section">
+                        <div class="preview-label">按钮样式</div>
+                        <div class="button-group">
+                            <button class="btn btn-primary">生成 API Key</button>
+                            <button class="btn btn-secondary">查看文档</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">卡片示例</div>
+                        <div class="card-preview">
+                            <div class="card-title">天气查询 API</div>
+                            <div class="card-content">
+                                <span class="badge">按次计费</span>
+                                <span style="margin-left: 8px; font-size: 14px;">¥0.01/次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison">
+            <h2>主题对比分析</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>主题</th>
+                        <th>适配情感目标</th>
+                        <th>开发难度</th>
+                        <th>品牌差异化</th>
+                        <th>用户接受度</th>
+                        <th>推荐指数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>🌙 Developer Pro</strong></td>
+                        <td>专注 > 自信</td>
+                        <td>中等</td>
+                        <td>中等</td>
+                        <td>开发者高</td>
+                        <td><span class="rating">⭐⭐⭐⭐</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>☀️ Friendly Tech</strong></td>
+                        <td>✅ 自信 + 轻松</td>
+                        <td>低</td>
+                        <td>中等</td>
+                        <td>通用高</td>
+                        <td><span class="rating">⭐⭐⭐⭐⭐</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>⚪ Minimalist</strong></td>
+                        <td>专业 > 自信</td>
+                        <td>低</td>
+                        <td>低</td>
+                        <td>中等</td>
+                        <td><span class="rating">⭐⭐⭐</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>🎨 Modern SaaS</strong></td>
+                        <td>创新 > 自信</td>
+                        <td>中等</td>
+                        <td>高</td>
+                        <td>年轻群体高</td>
+                        <td><span class="rating">⭐⭐⭐⭐</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>🏢 Enterprise</strong></td>
+                        <td>信任 > 自信</td>
+                        <td>中等</td>
+                        <td>中等</td>
+                        <td>企业客户高</td>
+                        <td><span class="rating">⭐⭐⭐</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>🌿 Approachable</strong></td>
+                        <td>✅ 轻松 + 成长</td>
+                        <td>低</td>
+                        <td>高</td>
+                        <td>新手友好</td>
+                        <td><span class="rating">⭐⭐⭐⭐</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 32px; padding: 20px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <h3 style="margin-bottom: 12px; color: #1e40af;">💡 推荐建议</h3>
+                <p style="color: #1e3a8a; line-height: 1.8;">
+                    <strong>首选：Friendly Tech（☀️）</strong><br>
+                    理由：最契合"便捷性"核心价值和"自信+轻松"情感目标，通用接受度高，开发成本低。<br><br>
+
+                    <strong>备选：Modern SaaS（🎨）或 Approachable（🌿）</strong><br>
+                    如果希望品牌更有记忆点，可选择Modern SaaS的渐变风格；如果要强调"降低门槛"，可选Approachable的绿色系。<br><br>
+
+                    <strong>实施建议：</strong>支持亮/暗双模式切换，满足不同用户偏好。
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
