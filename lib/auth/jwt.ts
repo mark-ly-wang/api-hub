@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { MembershipTier } from '@prisma/client'
-import { env } from '@/lib/env'
+import { getEnv } from '@/lib/env'
 
 /**
  * JWT Payload 类型定义
@@ -17,9 +17,18 @@ export interface JWTPayload {
 /**
  * JWT 配置常量
  */
-const JWT_SECRET = env.NEXTAUTH_SECRET
 const JWT_EXPIRES_IN = '7d' // 7 天有效期
 const JWT_ALGORITHM = 'HS256' // HMAC-SHA256 对称加密
+
+let cachedJwtSecret: string | null = null
+
+function ensureJwtSecret(): string {
+  if (!cachedJwtSecret) {
+    cachedJwtSecret = getEnv().NEXTAUTH_SECRET
+  }
+
+  return cachedJwtSecret
+}
 
 /**
  * 生成 JWT Token
@@ -33,7 +42,7 @@ const JWT_ALGORITHM = 'HS256' // HMAC-SHA256 对称加密
  * })
  */
 export function generateJWT(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, ensureJwtSecret(), {
     algorithm: JWT_ALGORITHM,
     expiresIn: JWT_EXPIRES_IN,
   })
@@ -51,7 +60,7 @@ export function generateJWT(payload: JWTPayload): string {
  */
 export function verifyJWT(token: string): JWTPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
+    const decoded = jwt.verify(token, ensureJwtSecret(), {
       algorithms: [JWT_ALGORITHM],
     }) as JWTPayload
 

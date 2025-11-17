@@ -16,6 +16,28 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 
-export const env = envSchema.parse(process.env)
-
 export type Env = z.infer<typeof envSchema>
+
+let cachedEnv: Env | null = null
+
+/**
+ * 延迟解析并缓存环境变量，避免在 Next.js 构建阶段因未注入变量而失败
+ */
+export function getEnv(): Env {
+  if (cachedEnv) {
+    return cachedEnv
+  }
+
+  const result = envSchema.safeParse(process.env)
+
+  if (!result.success) {
+    const formattedErrors = result.error.issues
+      .map(issue => `${issue.path.join('.') || 'root'}: ${issue.message}`)
+      .join('\n')
+
+    throw new Error(`环境变量配置不正确，请检查以下项:\n${formattedErrors}`)
+  }
+
+  cachedEnv = result.data
+  return cachedEnv
+}
