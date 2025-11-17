@@ -4,6 +4,8 @@ import { withSentryConfig } from "@sentry/nextjs"
 const nextConfig: NextConfig = {
   /* config options here */
   // 注意: instrumentation.ts 在 Next.js 16 中默认启用，无需配置
+  // Turbopack 无法解析 pino -> thread-stream 打包的测试资产，将其标记为外部依赖
+  serverExternalPackages: ["pino"],
 }
 
 // Sentry 配置选项
