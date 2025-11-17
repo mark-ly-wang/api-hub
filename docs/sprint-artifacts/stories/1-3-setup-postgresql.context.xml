@@ -1,0 +1,283 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>配置 PostgreSQL 数据库并执行初始迁移</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-16</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-3-setup-postgresql.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>开发者</asA>
+    <iWant>配置 PostgreSQL 数据库连接并执行 Prisma 迁移</iWant>
+    <soThat>数据库 schema 与代码定义同步</soThat>
+    <tasks>
+- [ ] 启动本地 PostgreSQL 数据库 (AC: 2)
+  - [ ] 创建 docker-compose.yml 配置 PostgreSQL 容器
+  - [ ] 配置容器端口映射（5432:5432）
+  - [ ] 配置数据库名称、用户名、密码
+  - [ ] 启动容器：`docker-compose up -d`
+  - [ ] 验证 PostgreSQL 容器运行状态
+- [ ] 配置数据库连接字符串 (AC: 2)
+  - [ ] 更新 .env.local 中的 DATABASE_URL
+  - [ ] 格式：`postgresql://user:password@localhost:5432/apihub?schema=public`
+  - [ ] 验证 lib/env.ts 可正确加载 DATABASE_URL
+- [ ] 执行 Prisma 数据库迁移 (AC: 3, 4, 5)
+  - [ ] 运行 `npx prisma migrate dev --name init`
+  - [ ] 验证迁移文件生成到 prisma/migrations/
+  - [ ] 检查迁移输出确认 8 张表创建成功
+  - [ ] 检查枚举类型创建（4 个枚举）
+  - [ ] 检查索引和外键约束创建
+- [ ] 验证数据库结构 (AC: 3, 4, 5, 6)
+  - [ ] 使用 Prisma Studio 查看数据库：`npx prisma studio`
+  - [ ] 确认所有 8 张表可见（User, ApiKey, Api, Membership, Subscription, ApiCall, Transaction）
+  - [ ] 验证表结构与 schema.prisma 一致
+  - [ ] 检查关系字段正确显示
+  - [ ] 测试在 Prisma Studio 中创建/编辑记录
+- [ ] 添加数据库开发工具脚本 (可选优化)
+  - [ ] 在 package.json 添加便捷脚本
+  - [ ] `"db:migrate": "prisma migrate dev"`
+  - [ ] `"db:studio": "prisma studio"`
+  - [ ] `"db:reset": "prisma migrate reset"`
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** Prisma schema 已定义（Story 1.2 完成）
+2. **When** 配置本地 PostgreSQL 连接并执行 `prisma migrate dev`
+3. **Then** 数据库中所有表成功创建（8 张核心表）
+4. **And** 索引、外键关系正确建立
+5. **And** 枚举类型正确创建（MembershipTier, ApiStatus, BillingMode, TransactionType）
+6. **And** Prisma Studio 可正常打开并查看数据
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.3: 配置 PostgreSQL 并执行初始迁移</section>
+        <snippet>详细描述 PostgreSQL 本地 Docker 配置和 Zeabur 生产环境设置。包含完整的迁移流程：启动容器、配置环境变量、执行 `prisma migrate dev --name init`、使用 Prisma Studio 验证。依赖 Story 1.2 的 Schema 定义。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>定义完整的 Prisma Schema（8 张表 + 4 个枚举）。所有金额字段使用 Int（分）存储，User/ApiKey 使用 isActive 软删除，级联删除关系配置完整，包含 17 个性能优化索引。</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.3: 配置 PostgreSQL 数据库并执行初始迁移</section>
+        <snippet>验收标准包括：数据库所有表成功创建（8张）、索引和外键关系正确、枚举类型创建、Prisma Studio 可用。技术说明：本地开发使用 Docker PostgreSQL，Zeabur 部署使用托管 addon，迁移文件保存在 prisma/migrations/。</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>2.2.3 数据库选型 - PostgreSQL</section>
+        <snippet>选择 PostgreSQL 作为数据库引擎。要求：支持 JSON 字段、原生枚举类型、完整的 ACID 事务、强大的索引能力。部署在 Zeabur 托管服务，自动备份和扩容。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/stories/1-2-migrate-to-prisma.md</path>
+        <title>Story 1.2 Completion Notes</title>
+        <section>Completion Notes List & File List</section>
+        <snippet>已创建完整的 Prisma Schema（prisma/schema.prisma，215行，4枚举+8表）、Prisma Client（v6.19.0）、环境变量验证（lib/env.ts）。当前 DATABASE_URL 为占位符，需在本 Story 更新为实际 PostgreSQL 连接字符串。</snippet>
+      </doc>
+    </docs>
+    <code>
+      <existing>
+        <file>
+          <path>prisma/schema.prisma</path>
+          <kind>schema</kind>
+          <symbol>Prisma Schema Definition</symbol>
+          <lines>1-215</lines>
+          <reason>包含所有数据库模型定义（8表+4枚举），迁移时将基于此文件生成 SQL</reason>
+        </file>
+        <file>
+          <path>lib/db/client.ts</path>
+          <kind>service</kind>
+          <symbol>prisma</symbol>
+          <lines>1-19</lines>
+          <reason>Prisma Client 单例导出，迁移后可用于数据库查询验证</reason>
+        </file>
+        <file>
+          <path>lib/env.ts</path>
+          <kind>util</kind>
+          <symbol>env</symbol>
+          <lines>5</lines>
+          <reason>使用 zod 验证 DATABASE_URL 环境变量格式</reason>
+        </file>
+        <file>
+          <path>.env.local</path>
+          <kind>config</kind>
+          <symbol>DATABASE_URL</symbol>
+          <lines>4</lines>
+          <reason>需要更新为实际 PostgreSQL 连接字符串（当前为占位符）</reason>
+        </file>
+        <file>
+          <path>.env.example</path>
+          <kind>config</kind>
+          <symbol>DATABASE_URL</symbol>
+          <lines>2</lines>
+          <reason>环境变量示例模板，包含 PostgreSQL 连接字符串格式</reason>
+        </file>
+        <file>
+          <path>prisma.config.ts</path>
+          <kind>config</kind>
+          <symbol>Prisma Config</symbol>
+          <lines>1-13</lines>
+          <reason>Prisma 配置文件，包含 schema 路径和 migrations 路径设置</reason>
+        </file>
+      </existing>
+      <to_create>
+        <file>
+          <path>docker-compose.yml</path>
+          <kind>config</kind>
+          <symbol>PostgreSQL Container</symbol>
+          <reason>配置本地开发用 PostgreSQL 容器（postgres:16-alpine）</reason>
+        </file>
+        <file>
+          <path>prisma/migrations/YYYYMMDDHHMMSS_init/migration.sql</path>
+          <kind>migration</kind>
+          <symbol>Initial Migration</symbol>
+          <reason>由 prisma migrate dev 自动生成的初始迁移 SQL 文件</reason>
+        </file>
+      </to_create>
+    </code>
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="@prisma/client" version="^6.19.0" note="已安装，Story 1.2" />
+        </runtime>
+        <dev>
+          <package name="prisma" version="^6.19.0" note="已安装，Story 1.2" />
+          <package name="zod" version="^4.1.12" note="已安装，用于环境变量验证" />
+          <package name="dotenv" version="^17.2.3" note="已安装，加载 .env 文件" />
+        </dev>
+      </node>
+      <docker>
+        <image name="postgres" version="16-alpine" note="本地开发用 PostgreSQL 容器" />
+      </docker>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **数据库引擎约束**: 必须使用 PostgreSQL（符合 Architecture 2.2.3）
+- **Schema 一致性约束**: 迁移必须完整创建 schema.prisma 中定义的所有表、枚举、索引
+- **迁移文件管理约束**: 所有迁移文件必须提交到 Git，确保团队同步
+- **环境变量安全约束**: 生产环境 DATABASE_URL 不得硬编码，使用环境变量注入
+- **数据持久化约束**: 本地开发使用 Docker volume，避免容器重启数据丢失
+- **迁移策略约束**: 开发环境使用 `prisma migrate dev`（生成并应用），生产环境使用 `prisma migrate deploy`（仅应用）
+- **PostgreSQL 版本约束**: 使用 PostgreSQL 14+ (推荐 16-alpine)
+- **端口映射约束**: Docker 容器端口必须映射到 5432:5432
+- **架构决策遵循**: 货币 Int 单位、软删除 isActive、级联删除、索引优化（来自 Story 1.2）
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Prisma Client 数据库接口</name>
+      <kind>TypeScript Module</kind>
+      <signature>
+// lib/db/client.ts
+import { PrismaClient } from '@prisma/client'
+
+export const prisma: PrismaClient
+export type { User, ApiKey, Api, ApiCall, Transaction, Membership, Subscription }
+
+// 使用示例（迁移后验证）
+await prisma.user.findMany()
+await prisma.apiKey.create({ data: {...} })
+      </signature>
+      <path>lib/db/client.ts</path>
+    </interface>
+    <interface>
+      <name>环境变量接口</name>
+      <kind>TypeScript Module</kind>
+      <signature>
+// lib/env.ts
+import { z } from 'zod'
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(), // 必须是有效的 PostgreSQL URL
+  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_URL: z.string().url(),
+  // ...
+})
+
+export const env = envSchema.parse(process.env)
+      </signature>
+      <path>lib/env.ts</path>
+    </interface>
+    <interface>
+      <name>Docker Compose 配置</name>
+      <kind>YAML Configuration</kind>
+      <signature>
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: apihub-postgres-dev
+    environment:
+      POSTGRES_USER: apihub
+      POSTGRES_PASSWORD: dev_password_change_in_production
+      POSTGRES_DB: apihub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+      </signature>
+      <path>docker-compose.yml</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+本 Story 为基础设施配置，测试方式以手动验证为主。后续 Stories 将建立自动化测试框架。
+
+**验证方式：**
+1. **迁移成功验证**: 运行 `npx prisma migrate dev --name init` 无错误，检查 prisma/migrations/ 目录包含迁移文件
+2. **表结构验证**: Prisma Studio 显示所有 8 张表，字段类型与 schema.prisma 一致
+3. **关系验证**: 外键约束存在（User -> ApiKey, User -> Transaction 等），级联删除配置生效
+4. **索引验证**: 所有 @@index 配置的索引已创建
+5. **Prisma Client 测试**: 运行简单查询确认连接成功
+
+**完成标准：**
+- ✅ Docker PostgreSQL 容器运行正常
+- ✅ `prisma migrate dev` 执行成功
+- ✅ Prisma Studio 可打开并显示所有表
+- ✅ 迁移文件已生成并提交到 Git
+- ✅ .env.local 包含正确的 DATABASE_URL
+    </standards>
+    <locations>
+      <!-- 本 Story 不涉及测试文件创建 -->
+      <!-- Epic 1 后续 Stories 将建立测试框架 -->
+      <!-- Story 1.3 完成后可使用 Prisma Studio 验证表结构 -->
+    </locations>
+    <ideas>
+      <test id="AC-1" description="验证 Prisma schema 已定义">
+        手动检查：prisma/schema.prisma 存在且包含 8 张表和 4 个枚举（Story 1.2 已完成）
+      </test>
+      <test id="AC-2" description="验证本地 PostgreSQL 连接配置">
+        运行 Docker 容器，更新 .env.local，测试连接成功
+      </test>
+      <test id="AC-3" description="验证数据库表创建">
+        运行 `prisma migrate dev`，检查输出确认 8 张表创建成功
+      </test>
+      <test id="AC-4" description="验证索引和外键">
+        使用 Prisma Studio 或 SQL 查询验证索引和外键约束存在
+      </test>
+      <test id="AC-5" description="验证枚举类型">
+        Prisma Studio 中查看枚举字段，确认 4 个枚举类型正确创建
+      </test>
+      <test id="AC-6" description="验证 Prisma Studio">
+        打开 Prisma Studio (http://localhost:5555)，浏览所有表并测试 CRUD 操作
+      </test>
+    </ideas>
+  </tests>
+</story-context>

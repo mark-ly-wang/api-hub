@@ -1,0 +1,215 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 枚举类型
+// ============================================
+
+enum MembershipTier {
+  FREE
+  VIP
+  ENTERPRISE
+}
+
+enum ApiStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}
+
+enum BillingMode {
+  PER_CALL      // 按次计费
+  USAGE_BASED   // 按量计费
+  MEMBERSHIP    // 会员免费
+}
+
+enum TransactionType {
+  TOP_UP            // 充值
+  API_CHARGE        // API 调用扣费
+  MEMBERSHIP_PURCHASE  // 会员购买
+  REFUND            // 退款
+  MANUAL_ADJUSTMENT // 手动调整
+}
+
+// ============================================
+// 数据模型
+// ============================================
+
+// 用户表
+model User {
+  id              String          @id @default(cuid())
+  phone           String?         @unique
+  email           String?         @unique
+  passwordHash    String?
+  name            String?
+  avatar          String?
+  membershipTier  MembershipTier  @default(FREE)
+  membershipExpiry DateTime?
+  balance         Int             @default(0) // 余额，单位：分
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  apiKeys         ApiKey[]
+  transactions    Transaction[]
+  apiCalls        ApiCall[]
+  subscriptions   Subscription[]
+
+  @@index([phone])
+  @@index([email])
+}
+
+// API Key 表
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key         String   @unique // sk_live_xxxxx
+  name        String   @default("API Key")
+  isActive    Boolean  @default(true)
+  totalCalls  Int      @default(0)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  apiCalls    ApiCall[]
+
+  @@index([userId])
+  @@index([key])
+}
+
+// API 配置表
+model Api {
+  id              String      @id @default(cuid())
+  slug            String      @unique // URL 友好的标识符
+  name            String
+  description     String?
+  category        String
+  icon            String?
+  status          ApiStatus   @default(ACTIVE)
+
+  // 上游 API 配置
+  upstreamUrl     String
+  upstreamKey     String      // AES-256 加密存储
+  upstreamMethod  String      @default("POST")
+
+  // 计费配置
+  billingMode     BillingMode
+  pricePerCall    Int?        // 按次计费价格（分）
+  pricePerUnit    Int?        // 按量计费单价（分）
+  usageParamPath  String?     // 按量计费参数路径，如 "response.usage.tokens"
+  billingUnit     String?     // 计费单位，如 "tokens"
+
+  // 会员权益配置
+  vipDiscountRate Int?        // VIP 折扣率（0-100），null 表示使用全局折扣
+
+  // 成本配置
+  costPerCall     Int?        // 批发成本（分）
+  costPerUnit     Int?        // 按量成本单价（分）
+
+  // 统计
+  totalCalls      Int         @default(0)
+
+  // Coze 代码模板
+  cozeCode        String?     @db.Text
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  apiCalls        ApiCall[]
+  subscriptions   Subscription[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+}
+
+// 会员套餐表
+model Membership {
+  id              String   @id @default(cuid())
+  name            String   // 月费会员、年费会员、终身VIP
+  tier            MembershipTier
+  price           Int      // 价格（分）
+  durationDays    Int      // 有效期（天）
+  discountRate    Int      @default(0) // 全局折扣率（0-100）
+  cashbackAmount  Int      @default(0) // 购买返现金额（分）
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions   Subscription[]
+}
+
+// 用户订阅记录表
+model Subscription {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membershipId    String?
+  membership      Membership? @relation(fields: [membershipId], references: [id])
+  apiId           String?
+  api             Api?        @relation(fields: [apiId], references: [id])
+  startDate       DateTime    @default(now())
+  endDate         DateTime
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([membershipId])
+  @@index([apiId])
+}
+
+// API 调用日志表
+model ApiCall {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKeyId        String
+  apiKey          ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  apiId           String
+  api             Api      @relation(fields: [apiId], references: [id], onDelete: Cascade)
+
+  method          String
+  path            String
+  requestBody     Json?
+  responseStatus  Int
+  responseBody    Json?
+
+  chargeAmount    Int      // 扣费金额（分）
+  costAmount      Int?     // 成本金额（分）
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([apiKeyId])
+  @@index([apiId])
+  @@index([createdAt])
+}
+
+// 交易记录表
+model Transaction {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  amount          Int             // 金额（分），正数表示增加，负数表示扣除
+  balanceBefore   Int             // 交易前余额（分）
+  balanceAfter    Int             // 交易后余额（分）
+  description     String?
+  referenceId     String?         // 关联 ID（如 ApiCall.id、Subscription.id）
+  createdAt       DateTime        @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}

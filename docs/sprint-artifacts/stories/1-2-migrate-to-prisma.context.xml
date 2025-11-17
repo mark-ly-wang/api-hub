@@ -1,0 +1,283 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.2</storyId>
+    <title>迁移 ORM 从 Drizzle 到 Prisma</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-16</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-2-migrate-to-prisma.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>开发者</asA>
+    <iWant>将 ORM 从 Drizzle 完全替换为 Prisma</iWant>
+    <soThat>统一技术栈并获得更好的类型安全和迁移工具</soThat>
+    <tasks>
+- [ ] 卸载 Drizzle 依赖，安装 Prisma (AC: 2, 3)
+  - [ ] 卸载 drizzle-orm, drizzle-kit 包
+  - [ ] 安装 @prisma/client 和 prisma (dev dependency)
+  - [ ] 初始化 Prisma：`npx prisma init`
+- [ ] 创建完整的 Prisma Schema (AC: 3, 4)
+  - [ ] 创建 prisma/schema.prisma 文件
+  - [ ] 定义 4 个枚举类型（MembershipTier, ApiStatus, BillingMode, TransactionType）
+  - [ ] 定义 User 模型（包含 8 个关系字段）
+  - [ ] 定义 ApiKey 模型
+  - [ ] 定义 Api 模型
+  - [ ] 定义 Membership 模型
+  - [ ] 定义 Subscription 模型
+  - [ ] 定义 ApiCall 模型
+  - [ ] 定义 Transaction 模型
+  - [ ] 添加所有必要的索引（userId, apiId, createdAt 等）
+- [ ] 生成 Prisma Client (AC: 5)
+  - [ ] 运行 `npx prisma generate`
+  - [ ] 验证 node_modules/@prisma/client 生成成功
+  - [ ] 创建 lib/db/client.ts 导出 Prisma 实例
+- [ ] 配置数据库连接 (AC: 6)
+  - [ ] 在 .env.local 中配置 DATABASE_URL
+  - [ ] 在 .env.example 中添加 DATABASE_URL 示例
+  - [ ] 使用 zod 验证环境变量（lib/env.ts）
+- [ ] 删除所有 Drizzle 相关代码 (AC: 7)
+  - [ ] 搜索并删除所有 import drizzle 语句
+  - [ ] 删除 drizzle.config.ts 文件（如果存在）
+  - [ ] 删除 lib/db/drizzle/ 目录（如果存在）
+  - [ ] 运行 `git grep -i drizzle` 确认无遗留
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** Next.js SaaS Starter 使用 Drizzle ORM
+2. **When** 配置 Prisma 并迁移 schema 定义
+3. **Then** Prisma schema.prisma 文件创建完成
+4. **And** 所有原 Drizzle schema 定义转换为 Prisma models
+5. **And** Prisma Client 成功生成并可导入使用
+6. **And** 数据库连接配置正确（.env 中 DATABASE_URL）
+7. **And** 原 Drizzle 相关代码全部移除
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>完整的 Prisma Schema 定义，包含 8 张核心表（User, ApiKey, Api, Membership, Subscription, ApiCall, Transaction）和 4 个枚举类型。所有金额使用 Int（分）存储，软删除使用 isActive 字段，级联删除配置完整。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.2 - ORM 迁移步骤</section>
+        <snippet>1. 卸载 Drizzle 依赖，安装 Prisma，2. 创建 prisma/schema.prisma 文件，3. 定义 8 张核心表的 Schema，4. 生成 Prisma Client（npx prisma generate），5. 删除所有 Drizzle 相关代码</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Workflows and Sequencing</section>
+        <snippet>Story 1.2 依赖 Story 1.1（需要先有项目结构）。迁移完成后 Story 1.3 将执行数据库迁移。预计耗时 1 天（Schema 设计 + 迁移）。</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.2: 迁移 ORM 从 Drizzle 到 Prisma</section>
+        <snippet>Prerequisites: Story 1.1。Technical Notes: Architecture 文档 Ch.10 详细描述迁移步骤。Prisma models: User, ApiKey, Api, ApiConfig, Subscription, ApiCall, Transaction, Membership。</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>ADR-002: 选择 Prisma ORM</section>
+        <snippet>选择 Prisma 而非 Drizzle 的原因：更强大的迁移工具、更好的类型安全、更丰富的生态系统、Studio 可视化工具。关键决策：货币单位用 Int（分）、软删除用 isActive、级联删除配置。</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>Ch.4 数据模型设计</section>
+        <snippet>8 张核心表的详细设计：User（用户认证和余额）、ApiKey（Key 管理）、Api（API 配置和计费）、Membership（会员套餐）、Subscription（订阅关系）、ApiCall（调用日志）、Transaction（交易记录）。所有表包含索引优化。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/stories/1-1-init-nextjs-starter.md</path>
+        <title>Story 1.1 Completion Notes</title>
+        <section>Completion Notes List</section>
+        <snippet>Next.js 16.0.3 项目创建成功，使用 with-supabase 示例，包含 Drizzle ORM。下一个故事建议：Story 1.2 迁移 ORM 到 Prisma，需要仔细处理 schema 转换和数据库连接配置，确保所有 Drizzle 代码完全移除。</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- 当前项目中不存在 Prisma 相关代码，Story 1.2 将创建 -->
+      <existing>
+        <file>
+          <path>package.json</path>
+          <kind>config</kind>
+          <symbol>dependencies</symbol>
+          <lines>9-23</lines>
+          <reason>包含 Next.js、React、Supabase 依赖，需要添加 @prisma/client 和 prisma</reason>
+        </file>
+        <file>
+          <path>.env.example</path>
+          <kind>config</kind>
+          <symbol>环境变量示例</symbol>
+          <lines>全文</lines>
+          <reason>需要添加 DATABASE_URL 示例</reason>
+        </file>
+      </existing>
+      <to_create>
+        <file>
+          <path>prisma/schema.prisma</path>
+          <kind>schema</kind>
+          <symbol>Prisma Schema</symbol>
+          <reason>定义所有数据模型、枚举和关系</reason>
+        </file>
+        <file>
+          <path>lib/db/client.ts</path>
+          <kind>service</kind>
+          <symbol>prisma</symbol>
+          <reason>导出 Prisma Client 单例实例</reason>
+        </file>
+        <file>
+          <path>lib/env.ts</path>
+          <kind>util</kind>
+          <symbol>env</symbol>
+          <reason>使用 zod 验证环境变量（DATABASE_URL 等）</reason>
+        </file>
+        <file>
+          <path>.env.local</path>
+          <kind>config</kind>
+          <symbol>本地环境变量</symbol>
+          <reason>配置本地 DATABASE_URL</reason>
+        </file>
+      </to_create>
+    </code>
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="@prisma/client" version="^5.22.0" />
+        </runtime>
+        <dev>
+          <package name="prisma" version="^5.22.0" />
+          <package name="zod" version="^3.23.0" note="用于环境变量验证" />
+        </dev>
+        <to_remove>
+          <package name="drizzle-orm" note="替换为 Prisma" />
+          <package name="drizzle-kit" note="替换为 Prisma CLI" />
+        </to_remove>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **技术栈约束**: 必须完全使用 Prisma ORM，不得保留任何 Drizzle 代码
+- **Schema 设计约束**: 必须严格按照 Tech Spec Epic 1 定义的 8 张表和 4 个枚举
+- **货币单位约束**: 所有金额字段必须使用 Int 类型，单位为"分"（避免浮点数精度问题）
+- **软删除约束**: User 和 ApiKey 使用 isActive 字段实现软删除，不直接删除记录
+- **级联删除约束**: 用户删除时必须级联删除关联的 ApiKey、ApiCall、Transaction
+- **索引约束**: 必须为高频查询字段（userId, apiId, createdAt）建立索引
+- **环境变量约束**: DATABASE_URL 必须通过 zod 验证，格式正确
+- **迁移前提**: Story 1.1 必须完成（项目结构已建立）
+- **命名约束**: 数据库表名使用 PascalCase（User, ApiKey），字段使用 camelCase（userId, createdAt）
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Prisma Client 导出</name>
+      <kind>TypeScript Module</kind>
+      <signature>
+// lib/db/client.ts
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+export type {
+  User,
+  ApiKey,
+  Api,
+  ApiCall,
+  Transaction,
+  Membership,
+  Subscription,
+} from '@prisma/client'
+      </signature>
+      <path>lib/db/client.ts</path>
+    </interface>
+    <interface>
+      <name>环境变量验证</name>
+      <kind>TypeScript Module</kind>
+      <signature>
+// lib/env.ts
+import { z } from 'zod'
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_URL: z.string().url(),
+})
+
+export const env = envSchema.parse(process.env)
+      </signature>
+      <path>lib/env.ts</path>
+    </interface>
+    <interface>
+      <name>Prisma Schema 结构</name>
+      <kind>Prisma DSL</kind>
+      <signature>
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 4 个枚举 + 8 张表 + 索引配置
+      </signature>
+      <path>prisma/schema.prisma</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+本 Story 主要为 Schema 定义和依赖迁移，测试方式以手动验证为主。后续 Stories 将建立自动化测试框架。
+
+**验证方式：**
+1. **Schema 验证**: 运行 `npx prisma validate` 检查 schema 语法
+2. **Client 生成验证**: 确认 @prisma/client 包含所有 8 个模型的类型定义
+3. **导入测试**: 在 lib/db/client.ts 中成功导入并导出 prisma 实例
+4. **环境变量验证**: lib/env.ts 使用 zod 验证 DATABASE_URL 存在且格式正确
+5. **Drizzle 清理验证**: 运行 `git grep -i drizzle` 应返回 0 结果
+
+**完成标准：**
+- ✅ Prisma schema.prisma 文件存在并包含所有 8 张表和 4 个枚举
+- ✅ `npx prisma generate` 成功执行，无错误
+- ✅ lib/db/client.ts 成功导出 prisma 实例
+- ✅ .env.local 包含 DATABASE_URL 配置
+- ✅ 项目中无任何 Drizzle 相关代码
+    </standards>
+    <locations>
+      <!-- 本 Story 不涉及测试文件创建 -->
+      <!-- Epic 1 后续 Stories 将建立测试框架 -->
+      <!-- Story 1.3 执行数据库迁移后可使用 Prisma Studio 验证表结构 -->
+    </locations>
+    <ideas>
+      <test id="AC-1" description="验证 Drizzle 已替换为 Prisma">
+        手动检查：package.json 中 Drizzle 依赖已移除，Prisma 依赖已添加
+      </test>
+      <test id="AC-2" description="验证 Schema 定义完整">
+        运行 `npx prisma validate` 无错误，schema 包含所有 8 张表和 4 个枚举
+      </test>
+      <test id="AC-3" description="验证 Prisma Client 生成">
+        运行 `npx prisma generate` 成功，node_modules/@prisma/client 目录存在
+      </test>
+      <test id="AC-4" description="验证数据库连接配置">
+        .env.local 包含 DATABASE_URL，lib/env.ts 验证环境变量成功
+      </test>
+      <test id="AC-5" description="验证 Drizzle 代码清理">
+        运行 `git grep -i drizzle` 返回 0 结果，项目中无 Drizzle 遗留代码
+      </test>
+    </ideas>
+  </tests>
+</story-context>

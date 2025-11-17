@@ -1,0 +1,165 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>6</storyId>
+    <title>配置监控与日志系统</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-16</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/stories/1-6-monitoring-logging.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>开发者</asA>
+    <iWant>配置 Sentry 错误监控和结构化日志系统</iWant>
+    <soThat>生产环境问题可被快速发现和诊断</soThat>
+    <tasks>
+      - 创建 Sentry 账户并获取 DSN
+      - 安装 Sentry SDK (@sentry/nextjs)
+      - 配置 Sentry 客户端、服务端和 Edge Runtime
+      - 配置 Source Maps 上传
+      - 配置环境变量 (NEXT_PUBLIC_SENTRY_DSN, SENTRY_AUTH_TOKEN)
+      - 实现结构化日志工具 (Pino)
+      - 实现敏感信息脱敏
+      - 测试错误追踪和 Source Maps
+      - 测试结构化日志
+      - 创建日志使用示例和文档
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. 本地和生产环境需要错误监控
+    2. 集成 Sentry SDK 并配置环境变量
+    3. 应用错误自动上报到 Sentry
+    4. Sentry Source Maps 上传成功(TypeScript stack traces 可读)
+    5. 可以查看应用 stdout/stderr 日志(本地控制台/Zeabur 日志面板)
+    6. 关键操作记录结构化日志(如 API 调用、计费事件)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Non-Functional Requirements - Monitoring (NFR-M1 to NFR-M4)</section>
+        <snippet>系统需要记录所有API请求访问日志、错误日志包含堆栈信息、日志结构化便于查询分析。监控API响应时间、数据库查询耗时、服务器资源使用率。实时监控API调用量、收入和成本。系统异常告警、业务异常告警、多渠道通知。</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Security Requirements (NFR-S6)</section>
+        <snippet>记录所有敏感操作审计日志(90天保留)，日志包含操作人、时间、IP、操作内容、结果。敏感日志需脱敏(隐藏API Key、手机号等)。</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>2.3.2 监控与错误追踪 - Sentry集成</section>
+        <snippet>使用@sentry/nextjs进行错误追踪，配置tracesSampleRate为0.1(10%请求)，environment为NODE_ENV。集成BrowserTracing和Replay。敏感数据需要beforeSend钩子进行脱敏。</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Document</title>
+        <section>9.3 监控与日志 - Zeabur内置监控</section>
+        <snippet>Zeabur提供实时CPU使用率、内存使用、网络流量、实时日志流查看功能。</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.6 - Sentry配置与结构化日志</section>
+        <snippet>Sentry配置包含dsn、environment、tracesSampleRate。使用pino进行结构化日志，开发环境使用pino-pretty格式化，生产环境输出JSON。敏感信息脱敏包括password、apiKey、phone、key等字段。</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.6 - 配置监控与日志系统</section>
+        <snippet>集成Sentry SDK并配置环境变量，应用错误自动上报到Sentry，Source Maps上传成功使TypeScript stack traces可读，Zeabur日志面板可查看应用stdout/stderr，关键操作记录结构化日志。</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>lib/env.ts</path>
+        <kind>环境变量管理</kind>
+        <symbol>env</symbol>
+        <lines>已存在</lines>
+        <reason>需要添加SENTRY_DSN和SENTRY_AUTH_TOKEN的验证规则</reason>
+      </artifact>
+      <artifact>
+        <path>next.config.js</path>
+        <kind>Next.js配置</kind>
+        <symbol>nextConfig</symbol>
+        <lines>已存在</lines>
+        <reason>需要添加Sentry webpack插件配置用于上传Source Maps</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      {
+        "node": {
+          "@sentry/nextjs": "^8.0.0",
+          "pino": "^8.0.0",
+          "pino-pretty": "^10.0.0"
+        }
+      }
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - 使用Sentry作为错误监控工具(Architecture 2.3.2决策)
+    - 使用Pino作为结构化日志库(性能最优，Tech Spec推荐)
+    - Sentry采样率设置为10%(tracesSampleRate: 0.1)以控制成本
+    - 敏感信息必须脱敏：password、apiKey、key、phone、email(部分)
+    - 日志级别规范：error(功能失败)、warn(潜在问题)、info(关键业务事件)、debug(仅开发环境)
+    - Source Maps仅在构建时上传，不影响运行时性能
+    - 开发环境使用pino-pretty格式化输出，生产环境输出JSON格式
+    - 环境变量：NEXT_PUBLIC_SENTRY_DSN(客户端)、SENTRY_DSN(服务端)、SENTRY_AUTH_TOKEN(上传Source Maps)
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>logger</name>
+      <kind>Logger API</kind>
+      <signature>
+        logger.info(message: string, meta?: object): void
+        logger.warn(message: string, meta?: object): void
+        logger.error(message: string, error: Error, meta?: object): void
+        logger.debug(message: string, meta?: object): void
+      </signature>
+      <path>lib/logger.ts (需创建)</path>
+    </interface>
+    <interface>
+      <name>redactSensitiveData</name>
+      <kind>Function</kind>
+      <signature>redactSensitiveData(data: any): any</signature>
+      <path>lib/logger.ts (需创建)</path>
+    </interface>
+    <interface>
+      <name>Sentry.init</name>
+      <kind>Sentry Configuration</kind>
+      <signature>
+        Sentry.init({
+          dsn: string,
+          environment: string,
+          tracesSampleRate: number,
+          beforeSend: (event) => event,
+          integrations: Integration[]
+        })
+      </signature>
+      <path>sentry.client.config.ts, sentry.server.config.ts (需创建)</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      使用Jest作为测试框架。Sentry集成需要手动测试（触发错误并在Dashboard验证）。日志功能需要单元测试验证格式和脱敏。Source Maps上传成功后，验证Sentry Dashboard中的stack trace显示正确的TypeScript文件名和行号。
+    </standards>
+    <locations>
+      __tests__/lib/logger.test.ts (结构化日志测试)
+      app/api/test-sentry/route.ts (Sentry手动测试路由)
+    </locations>
+    <ideas>
+      - AC1-2: 创建测试API Route故意抛出错误，验证Sentry接收到错误报告
+      - AC3: 验证错误报告包含完整的上下文信息（用户信息、请求参数等）
+      - AC4: 在Sentry Dashboard验证stack trace显示源码文件名(*.ts)而非编译后(*.js)
+      - AC5: 测试pino日志输出格式，开发环境应为美化格式，生产环境应为JSON
+      - AC6: 测试logger.info()记录关键业务事件，验证日志包含timestamp、level、message、meta
+      - AC6: 测试敏感信息脱敏函数，验证password、apiKey等字段被正确脱敏
+    </ideas>
+  </tests>
+</story-context>

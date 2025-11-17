@@ -37,12 +37,12 @@ story_location: docs/sprint-artifacts
 development_status:
   # Epic 1: 项目基础设施与核心架构 (6 stories)
   epic-1: contexted
-  1-1-init-nextjs-starter: in-progress
-  1-2-migrate-to-prisma: backlog
-  1-3-setup-postgresql: backlog
-  1-4-deploy-to-zeabur: backlog
-  1-5-jwt-auth-middleware: backlog
-  1-6-monitoring-logging: backlog
+  1-1-init-nextjs-starter: done
+  1-2-migrate-to-prisma: done
+  1-3-setup-postgresql: done
+  1-4-deploy-to-zeabur: drafted  # 技术债务: 需手动部署到 Zeabur (不阻塞本地开发)
+  1-5-jwt-auth-middleware: done
+  1-6-monitoring-logging: done
   epic-1-retrospective: optional
 
   # Epic 2: 用户认证与账户管理 (8 stories) - FR1-FR8
