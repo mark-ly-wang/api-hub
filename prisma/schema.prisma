@@ -6,8 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Vercel + Supabase 优化: 使用连接池 URL 提升性能
+  // DATABASE_URL: Supabase Pooler (端口 6543, pgbouncer=true) - 用于应用运行时
+  // DIRECT_URL: Supabase Direct (端口 5432) - 用于 Prisma Migrate
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================

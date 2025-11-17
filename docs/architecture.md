@@ -57,7 +57,7 @@ LLM:       OpenAI GPT-4o mini (Coze代码生成)
 | 决策领域 | 选择方案 | 关键理由 |
 |---------|----------|----------|
 | **Starter模板** | Next.js官方SaaS Starter | 官方维护、长期支持、代码质量高 |
-| **部署平台** | Zeabur全栈 | 零运维负担、国内访问快、自动扩容 |
+| **部署平台** | Vercel + Supabase | Next.js原生支持、全球CDN、零配置、免费额度慷慨 |
 | **ORM策略** | 完全替换为Prisma | 统一技术栈、类型安全、迁移工具成熟 |
 | **计费引擎** | 响应体解析（JSON Path） | 支持灵活按量计费、通用性强 |
 | **计费时机** | 同步计费 | 强一致性、防止透支 |
@@ -201,8 +201,8 @@ const users = await prisma.user.findMany()
 5. **Zeabur托管**: 自动备份、高可用、零运维
 
 **托管方案**:
-- **首选**: Zeabur托管PostgreSQL（与应用同平台，延迟最低）
-- **备选**: Supabase（功能更丰富，如实时订阅、Auth）
+- **首选**: Supabase（功能丰富、免费额度慷慨、完美支持 Prisma、内置连接池）
+- **备选**: Vercel Postgres（与应用同平台，但收费较高）
 
 **权衡分析**:
 - ✅ **优势**: 稳定可靠、功能强大、工具链成熟
@@ -211,58 +211,97 @@ const users = await prisma.user.findMany()
 
 ### 2.3 部署与基础设施
 
-#### 2.3.1 部署平台：Zeabur
+#### 2.3.1 部署平台：Vercel + Supabase
 
 **选择理由**:
-1. **零运维负担**: 团队无运维能力，平台自动管理所有基础设施
-2. **国内访问快**: 相比Vercel/Railway，国内访问延迟更低
-3. **自动扩容**: 流量增长时自动水平扩展
-4. **成本可控**: ¥29-99/月，适合MVP阶段
-5. **中文支持**: 界面、文档、客服全中文
+1. **Next.js 原生支持**: Vercel 是 Next.js 官方团队开发的平台，零配置即可部署
+2. **全球 Edge Network**: 全球 CDN 和 Edge Functions，性能卓越
+3. **免费额度慷慨**: Hobby Plan 完全免费，适合 MVP 和个人项目
+4. **自动化程度高**: Git 推送自动部署、自动 HTTPS、自动扩容
+5. **开发体验优秀**: Preview Deployments、即时回滚、环境变量管理直观
+6. **Supabase 完美集成**: PostgreSQL + 内置连接池，免费 500MB 数据库
 
-**Zeabur架构**:
+**Vercel + Supabase 架构**:
 ```
 ┌─────────────────────────────────────┐
-│       Zeabur Platform               │
+│         Vercel Platform             │
 ├─────────────────────────────────────┤
 │  ┌────────────────────────────┐    │
 │  │  Next.js App               │    │
-│  │  (自动SSL + CDN)           │    │
+│  │  (Edge Functions + SSR)    │    │
+│  │  (自动 SSL + 全球 CDN)     │    │
 │  └──────────┬─────────────────┘    │
+│             │                       │
+│             │ DATABASE_URL          │
+│             │ (Connection Pooling)  │
 │             ▼                       │
+└─────────────┼───────────────────────┘
+              │
+┌─────────────▼───────────────────────┐
+│       Supabase Platform             │
+├─────────────────────────────────────┤
 │  ┌────────────────────────────┐    │
-│  │  PostgreSQL                │    │
-│  │  (每日自动备份)            │    │
+│  │  PostgreSQL 15             │    │
+│  │  (Connection Pooler 6543)  │    │
+│  │  (Direct Connection 5432)  │    │
 │  └────────────────────────────┘    │
 │                                     │
 │  内置功能:                          │
-│  ✅ 自动部署 (Git推送)              │
-│  ✅ 环境变量管理                    │
-│  ✅ 监控面板 + 日志                 │
-│  ✅ 自定义域名 + SSL                │
+│  ✅ 自动备份 (Point-in-Time)        │
+│  ✅ 连接池 (PgBouncer)              │
+│  ✅ Dashboard + SQL Editor          │
+│  ✅ Realtime Subscriptions (可选)   │
 └─────────────────────────────────────┘
 ```
 
 **部署流程**:
 ```bash
-# 1. 连接GitHub仓库到Zeabur
-# 2. 配置环境变量
-# 3. Git推送自动部署
+# 1. Vercel: 连接 GitHub 仓库
+# 2. Supabase: 创建项目获取 DATABASE_URL
+# 3. Vercel: 配置环境变量
+# 4. Git 推送自动部署
 git push origin main  # 触发自动部署
+
+# Vercel 自动执行:
+# - npm install (安装所有 dependencies)
+# - prisma generate (生成 Prisma Client)
+# - npm run build (构建 Next.js)
+# - 部署到 Edge Network
+# - prisma migrate deploy (首次启动时)
 ```
 
+**环境变量配置**:
+```bash
+# 数据库 (Supabase)
+DATABASE_URL=postgresql://...@pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL=postgresql://...@pooler.supabase.com:5432/postgres
+
+# NextAuth
+NEXTAUTH_URL=https://your-app.vercel.app
+NEXTAUTH_SECRET=your-secret-key
+
+# Sentry (可选)
+NEXT_PUBLIC_SENTRY_DSN=...
+SENTRY_DSN=...
+```
+
+**Vercel 无服务器优化**:
+- **连接池**: 使用 Supabase Pooler (端口 6543) 避免连接耗尽
+- **函数超时**: Hobby Plan 10秒，Pro Plan 60秒（大部分 API 调用 <5秒）
+- **冷启动优化**: Edge Functions 冷启动 <100ms
+
 **权衡分析**:
-- ✅ **优势**: 零运维、快速部署、国内友好
-- ⚠️ **劣势**: 平台锁定风险、高级配置受限
-- 🔄 **替代方案**: Railway（国外）、阿里云（需运维能力） - 已否决
+- ✅ **优势**: Next.js 原生支持、全球 CDN、免费额度、开发体验极佳
+- ⚠️ **劣势**: 国内访问速度较慢（可使用 CDN 加速）、函数执行时间限制
+- 🔄 **替代方案**: Railway（简单但贵）、Zeabur（国内快但配置复杂） - 已评估
 
 #### 2.3.2 监控与错误追踪
 
-**Zeabur内置监控**:
+**Vercel 内置监控**:
 - 应用健康检查
-- CPU/内存使用率
-- 请求量和延迟
-- 日志查看
+- 函数执行时间和调用次数
+- 带宽和请求统计
+- 实时日志查看 (Runtime Logs)
 
 **Sentry集成**（错误追踪）:
 ```typescript
