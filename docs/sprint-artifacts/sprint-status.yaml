@@ -43,7 +43,7 @@ development_status:
   1-4-deploy-to-k8s: ready-for-dev  # 迁移: 从 Vercel 切换到 Kubernetes + Docker + Supabase
   1-5-jwt-auth-middleware: done
   1-6-monitoring-logging: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: completed
 
   # Epic 2: 用户认证与账户管理 (8 stories) - FR1-FR8
   epic-2: backlog
