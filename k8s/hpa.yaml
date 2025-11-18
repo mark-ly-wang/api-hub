@@ -1,0 +1,64 @@
+# ============================================
+# Horizontal Pod Autoscaler (HPA)
+# 根据 CPU/内存使用率自动伸缩 Pod 数量
+# ============================================
+# 注意: 需要安装 Metrics Server:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+# ============================================
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hub-hpa
+  namespace: api-hub
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-hub
+
+  # Pod 数量范围
+  minReplicas: 2   # 最小 2 个 Pod（高可用）
+  maxReplicas: 10  # 最大 10 个 Pod
+
+  # 扩缩容指标
+  metrics:
+  # CPU 使用率
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # CPU 使用率超过 70% 时扩容
+
+  # 内存使用率
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # 内存使用率超过 80% 时扩容
+
+  # 扩缩容行为（K8s 1.23+）
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 缩容前观察 5 分钟
+      policies:
+      - type: Percent
+        value: 50  # 每次最多减少 50% 的 Pod
+        periodSeconds: 60  # 每分钟评估一次
+      - type: Pods
+        value: 1   # 每次最多减少 1 个 Pod
+        periodSeconds: 60
+      selectPolicy: Min  # 选择更保守的策略
+
+    scaleUp:
+      stabilizationWindowSeconds: 0  # 立即扩容
+      policies:
+      - type: Percent
+        value: 100  # 每次最多增加 100% 的 Pod
+        periodSeconds: 60
+      - type: Pods
+        value: 2    # 每次最多增加 2 个 Pod
+        periodSeconds: 60
+      selectPolicy: Max  # 选择更激进的策略

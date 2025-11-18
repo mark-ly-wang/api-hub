@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-hub-config
+  namespace: api-hub
+data:
+  # Node.js 环境
+  NODE_ENV: "production"
+
+  # Next.js 配置
+  NEXT_TELEMETRY_DISABLED: "1"
+
+  # 日志级别
+  LOG_LEVEL: "info"
+
+  # NextAuth URL（部署后需要修改为实际域名）
+  NEXTAUTH_URL: "https://api.yourdomain.com"
+
+  # Supabase 公开配置（如果使用 Supabase）
+  # NEXT_PUBLIC_SUPABASE_URL: "https://your-project.supabase.co"
+  # 注意: SUPABASE_PUBLISHABLE_KEY 虽然名称包含 PUBLISHABLE，
+  # 但建议放在 Secret 中以便统一管理

@@ -40,7 +40,7 @@ development_status:
   1-1-init-nextjs-starter: done
   1-2-migrate-to-prisma: done
   1-3-setup-postgresql: done
-  1-4-deploy-to-vercel: ready-for-dev  # 迁移: 从 Zeabur 切换到 Vercel + Supabase
+  1-4-deploy-to-k8s: ready-for-dev  # 迁移: 从 Vercel 切换到 Kubernetes + Docker + Supabase
   1-5-jwt-auth-middleware: done
   1-6-monitoring-logging: done
   epic-1-retrospective: optional

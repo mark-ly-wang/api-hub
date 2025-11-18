@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   // 注意: instrumentation.ts 在 Next.js 16 中默认启用，无需配置
   // Turbopack 无法解析 pino -> thread-stream 打包的测试资产，将其标记为外部依赖
   serverExternalPackages: ["pino"],
+
+  // Kubernetes/Docker 部署: 启用 standalone 输出模式
+  // 这会生成 .next/standalone 目录，包含所有运行时依赖
+  // 镜像大小可减少 80%+ (从 ~1GB 降到 ~200MB)
+  output: "standalone",
 }
 
 // Sentry 配置选项

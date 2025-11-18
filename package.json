@@ -10,7 +10,10 @@
     "db:reset": "prisma migrate reset",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "start:prod": "NODE_ENV=production node .next/standalone/server.js",
+    "docker:build": "docker build -t api-hub:local .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env.local api-hub:local"
   },
   "dependencies": {
     "autoprefixer": "^10.4.20",

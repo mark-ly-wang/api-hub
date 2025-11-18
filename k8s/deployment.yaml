@@ -1,0 +1,165 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-hub
+  namespace: api-hub
+  labels:
+    app: api-hub
+spec:
+  # 副本数（生产环境建议至少 2 个以保证高可用）
+  replicas: 2
+
+  # 选择器
+  selector:
+    matchLabels:
+      app: api-hub
+
+  # 滚动更新策略（零停机部署）
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1          # 最多同时创建 1 个新 Pod
+      maxUnavailable: 0    # 确保至少所有旧 Pod 可用（零停机）
+
+  template:
+    metadata:
+      labels:
+        app: api-hub
+    spec:
+      # Init Container: 在主容器启动前运行数据库迁移
+      initContainers:
+      - name: prisma-migrate
+        image: ghcr.io/GITHUB_USERNAME/api-hub:latest  # 替换为您的镜像地址
+        command: ["npx", "prisma", "migrate", "deploy"]
+        env:
+        # 使用 DIRECT_URL 进行迁移（不经过连接池）
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: DIRECT_URL
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+
+      # 主应用容器
+      containers:
+      - name: api-hub
+        image: ghcr.io/GITHUB_USERNAME/api-hub:latest  # 替换为您的镜像地址
+        imagePullPolicy: Always
+
+        # 端口配置
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+
+        # 环境变量（从 ConfigMap 和 Secret 引用）
+        env:
+        # ConfigMap 中的非敏感配置
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: api-hub-config
+              key: NODE_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: api-hub-config
+              key: LOG_LEVEL
+        - name: NEXTAUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-hub-config
+              key: NEXTAUTH_URL
+
+        # Secret 中的敏感配置
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: DATABASE_URL
+        - name: DIRECT_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: DIRECT_URL
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: NEXTAUTH_SECRET
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: SENTRY_DSN
+        - name: SENTRY_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: SENTRY_AUTH_TOKEN
+        - name: SENTRY_ORG
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: SENTRY_ORG
+        - name: SENTRY_PROJECT
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: SENTRY_PROJECT
+        - name: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+        # 存活探针（Liveness Probe）
+        # 检测应用是否健康，失败则重启容器
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 30  # 容器启动后 30 秒开始检查
+          periodSeconds: 10        # 每 10 秒检查一次
+          timeoutSeconds: 5        # 5 秒超时
+          successThreshold: 1      # 连续成功 1 次认为健康
+          failureThreshold: 3      # 连续失败 3 次触发重启
+
+        # 就绪探针（Readiness Probe）
+        # 检测应用是否准备好接收流量，失败则移出负载均衡
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10  # 容器启动后 10 秒开始检查
+          periodSeconds: 5         # 每 5 秒检查一次
+          timeoutSeconds: 3        # 3 秒超时
+          successThreshold: 1      # 连续成功 1 次认为就绪
+          failureThreshold: 2      # 连续失败 2 次移出负载均衡
+
+        # 资源限制和请求
+        resources:
+          requests:
+            memory: "512Mi"   # 最小保证内存
+            cpu: "500m"       # 0.5 核 CPU
+          limits:
+            memory: "1Gi"     # 最大内存限制
+            cpu: "1000m"      # 1 核 CPU
+
+        # 安全上下文（非 root 用户运行）
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Next.js 需要写入 .next 目录
+
+      # 重启策略
+      restartPolicy: Always

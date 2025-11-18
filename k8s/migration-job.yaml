@@ -1,0 +1,104 @@
+# ============================================
+# Kubernetes Job: Prisma 数据库迁移
+# ============================================
+# 使用场景:
+# 1. 首次部署前运行数据库迁移
+# 2. 需要独立执行迁移时（不使用 Init Container）
+#
+# 使用方法:
+#   kubectl apply -f k8s/migration-job.yaml
+#   kubectl logs job/prisma-migrate -n api-hub
+#   kubectl delete job/prisma-migrate -n api-hub  # 清理
+# ============================================
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-migrate
+  namespace: api-hub
+  labels:
+    app: api-hub
+    job: migration
+spec:
+  # Job 失败后不自动重试（避免重复执行迁移）
+  backoffLimit: 0
+
+  # Job 保留时间（成功后 1 小时自动清理）
+  ttlSecondsAfterFinished: 3600
+
+  template:
+    metadata:
+      labels:
+        app: api-hub
+        job: migration
+    spec:
+      # Job 完成后不重启
+      restartPolicy: Never
+
+      containers:
+      - name: migrate
+        image: ghcr.io/GITHUB_USERNAME/api-hub:latest  # 替换为您的镜像地址
+
+        # 执行 Prisma 迁移命令
+        command: ["npx", "prisma", "migrate", "deploy"]
+
+        # 环境变量（使用 DIRECT_URL，不经过连接池）
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-hub-secrets
+              key: DIRECT_URL
+
+        # 资源限制
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+
+---
+# ============================================
+# CronJob: 定期数据库备份（可选）
+# ============================================
+# 每天凌晨 2 点执行数据库备份
+# ============================================
+
+# apiVersion: batch/v1
+# kind: CronJob
+# metadata:
+#   name: database-backup
+#   namespace: api-hub
+# spec:
+#   schedule: "0 2 * * *"  # 每天 02:00
+#   successfulJobsHistoryLimit: 3
+#   failedJobsHistoryLimit: 1
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           restartPolicy: Never
+#           containers:
+#           - name: backup
+#             image: postgres:16-alpine
+#             command:
+#             - /bin/sh
+#             - -c
+#             - |
+#               pg_dump $DATABASE_URL > /backup/backup-$(date +%Y%m%d-%H%M%S).sql
+#               # 上传到 S3/OSS/云存储
+#             env:
+#             - name: DATABASE_URL
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: api-hub-secrets
+#                   key: DIRECT_URL
+#             volumeMounts:
+#             - name: backup-storage
+#               mountPath: /backup
+#           volumes:
+#           - name: backup-storage
+#             persistentVolumeClaim:
+#               claimName: backup-pvc
