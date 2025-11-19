@@ -2887,13 +2887,16 @@ export async function POST(request: Request) {
 ### ADR-001: 选择Zeabur而非阿里云自管理
 
 **日期**: 2025-11-15
-**状态**: ✅ 已接受
+**状态**: ❌ 已废弃 (2025-01-19，被 ADR-007 替代)
 
 **背景**:
 团队无运维能力，需要快速部署MVP验证产品方向。
 
 **决策**:
 选择Zeabur零运维PaaS平台，放弃阿里云ECS自管理方案。
+
+**废弃原因**:
+经过实际评估，最终选择 Kubernetes + Docker 方案以获得更好的基础设施控制权、国内访问速度和成本优势。详见 ADR-007。
 
 **理由**:
 1. 零运维负担，专注产品开发
@@ -3075,6 +3078,165 @@ Coze插件代码生成需要LLM服务。
 **替代方案**:
 - 云KMS（AWS KMS/阿里云KMS）: 更安全但成本高，可作为未来升级方向
 - 环境变量存储: 不支持动态添加API，已否决
+
+---
+
+### ADR-007: 从 Zeabur 迁移到 Kubernetes + Docker
+
+**日期**: 2025-01-19
+**状态**: ✅ 已接受 (替代 ADR-001)
+
+**背景**:
+Epic 1 执行过程中，部署平台经历了 3 次调整：Zeabur → Vercel + Supabase → Kubernetes + Docker + Supabase。最终决定使用 Kubernetes 容器化部署，以获得更好的基础设施控制权和成本优势。
+
+**决策**:
+采用 **Kubernetes + Docker + GitHub Actions** 的完整容器化部署方案，数据库使用 Supabase 托管 PostgreSQL。
+
+**对比方案**:
+
+| 维度 | Zeabur (ADR-001) | Vercel + Supabase | Kubernetes + Docker ✅ |
+|------|-----------------|------------------|----------------------|
+| **运维复杂度** | ✅ 零运维 | ✅ 零运维 | 🟡 需要 K8s 知识 |
+| **国内访问** | ✅ 快 (<50ms) | 🟡 中等 (Vercel Edge) | ✅ 快 (自选 VPS) |
+| **成本** | 🟡 ¥29-99/月 | ✅ 免费（小流量） | ✅ ¥200-500/月（2C4G VPS） |
+| **基础设施控制** | ❌ 受限 | ❌ Serverless 限制 | ✅ 完全控制 |
+| **扩容策略** | 🟡 平台自动 | ✅ 边缘分布式 | ✅ HPA 自定义策略 |
+| **CI/CD 自动化** | ✅ Git push | ✅ Git push | ✅ GitHub Actions |
+| **适用场景** | MVP 快速验证 | Serverless 轻应用 | **生产级 SaaS 平台** |
+
+**选择 Kubernetes 的理由**:
+
+1. **完全基础设施控制** ✅
+   - 自定义资源分配（CPU、内存、副本数）
+   - 自定义扩容策略（HPA 基于 CPU/内存/自定义指标）
+   - 完全的网络配置能力（Ingress、Service Mesh）
+
+2. **国内访问速度优化** ✅
+   - 部署在国内 VPS/云服务器（阿里云、腾讯云、华为云）
+   - 延迟 <50ms（vs Vercel 国内 100-200ms）
+   - 无需担心 CDN 缓存策略
+
+3. **成本优势** ✅
+   - **长期成本低**: ¥200-500/月（2C4G VPS）
+   - vs Zeabur ¥29-99/月（受限资源）
+   - vs Vercel Pro $20/月（Serverless 限制多）
+   - Supabase 免费层足够（50GB 存储、50 连接）
+
+4. **生产级能力** ✅
+   - 滚动更新零停机（maxSurge: 1, maxUnavailable: 0）
+   - 健康检查（Liveness + Readiness Probes）
+   - 自动伸缩（HPA: 2-10 replicas）
+   - 资源隔离（Namespace、ResourceQuota）
+
+5. **技术成长** ✅
+   - 学习行业标准技术栈（K8s 是云原生基石）
+   - 提升 DevOps 能力
+   - 简历加分项
+
+**实施方案**:
+
+```
+GitHub Repository
+    ↓ (Git Push)
+GitHub Actions CI/CD
+    ↓ (Docker Build)
+GitHub Container Registry (GHCR)
+    ↓ (kubectl set image)
+Kubernetes Cluster
+    ├─ Ingress (NGINX + Let's Encrypt TLS)
+    ├─ Service (ClusterIP:3000)
+    └─ Deployment (replicas: 2-10)
+         ├─ Pod 1: api-hub container
+         │    ├─ Init Container: prisma migrate deploy
+         │    └─ Main Container: Next.js (512Mi RAM, 0.5 CPU)
+         └─ Pod 2: Health Check (/api/health)
+
+外部数据库: Supabase PostgreSQL (托管)
+```
+
+**技术实现**:
+
+1. **Docker 镜像优化**:
+   - Multi-stage build (deps → builder → runner)
+   - Alpine Linux 基础镜像（<5MB）
+   - Next.js standalone mode（减少 80% 体积）
+   - 最终镜像 <250MB
+
+2. **Kubernetes 配置**:
+   - Namespace: `api-hub`
+   - ConfigMap: 非敏感环境变量
+   - Secret: DATABASE_URL, NEXTAUTH_SECRET 等
+   - Deployment: 2 replicas（生产可扩展到 10）
+   - Service: ClusterIP（内部访问）
+   - Ingress: HTTPS + TLS（Let's Encrypt）
+   - HPA: CPU >70% 自动扩容
+
+3. **CI/CD 自动化**:
+   ```yaml
+   # .github/workflows/deploy-k8s.yml
+   on: push branches: [main]
+
+   jobs:
+     build-and-push:
+       - Build Docker image
+       - Push to ghcr.io
+
+     deploy:
+       - kubectl set image deployment/api-hub
+       - kubectl rollout status
+       - Rollback on failure
+   ```
+
+4. **数据库连接优化**:
+   - Prisma connection pool: 每个 Pod 限制 10 个连接
+   - 总连接数 = Pod 数量 × 10（< Supabase 50 连接限制）
+   - 使用 Supabase Pooler（端口 6543）
+
+**后果**:
+
+**优势** ✅:
+- ✅ 完全基础设施控制权
+- ✅ 国内访问快（<50ms）
+- ✅ 长期成本低（节省 60%+ vs Serverless）
+- ✅ 生产级高可用架构
+- ✅ 技术能力提升
+
+**劣势** ⚠️:
+- ⚠️ 需要学习 K8s 知识（约 1-2 周学习曲线）
+- ⚠️ 需要管理 VPS 服务器（虽然 K8s 简化了应用层运维）
+- ⚠️ 初期配置工作量大（21 个文件，1500+ 行代码）
+- ⚠️ 需要配置 kubectl、KUBECONFIG 等工具
+
+**风险缓解**:
+1. **学习曲线**: 已完成完整的 K8s 配置和文档（k8s/README.md）
+2. **运维负担**: 使用托管 K8s（如阿里云 ACK）可降低运维复杂度
+3. **成本控制**: VPS 按需升配，起步成本低（¥200/月）
+4. **回退方案**: Docker 镜像可部署到任何平台（Fly.io, Railway 等）
+
+**决策过程中的问题**:
+
+**Q: 为什么经历了 3 次调整？**
+A: Epic 1 启动前，缺少充分的技术调研和架构决策工作坊。在执行过程中"边做边调整"，导致返工。
+
+**Q: 为什么不在一开始就选择 K8s？**
+A: 当时低估了部署平台的"不可逆性"，认为可以随时切换。实际上每次切换成本高达 6-8 小时。
+
+**Q: 未来会再次更换吗？**
+A: **不会**。Kubernetes 是最终方案，除非业务规模达到需要多云部署或 Serverless 架构的阶段。
+
+**何时重新评估**:
+- 日 API 调用量 > 100 万次（需要更复杂的架构，如服务网格 Istio）
+- 需要全球部署（多区域 K8s 集群）
+- 团队规模 > 10 人（需要更细粒度的资源隔离）
+
+**相关文档**:
+- Epic 1 Retrospective: `docs/epic-1-retrospective.md`
+- K8s Deployment Guide: `k8s/README.md`
+- Story 1-4: `docs/sprint-artifacts/stories/1-4-deploy-to-k8s.md`
+
+**经验教训**:
+> **关键架构决策应在 Epic 开始前锁定，而不是在执行过程中调整。**
+> **高质量的前期决策 > 快速开始但频繁返工。**
 
 ---
 
